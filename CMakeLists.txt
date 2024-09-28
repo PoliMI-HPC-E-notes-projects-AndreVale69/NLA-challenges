@@ -11,8 +11,7 @@ include_directories(
         /u/sw/toolchains/gcc-glibc/11.2.0/pkgs/dealii/9.5.1/include
 )
 
-#set(SOURCES ch-1/main.cpp)
-
-add_executable(main challenge-1/main.cpp
-        challenge-1/stb_image.h)
-target_link_libraries(main ${CMAKE_SOURCE_DIR}/challenge-1/stb_image.h)
+add_executable(
+        main challenge-1/src/main.cpp
+        challenge-1/src/utils/convert_utils.cpp
+)

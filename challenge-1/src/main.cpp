@@ -1,23 +1,17 @@
+// from https://github.com/nothings/stb/tree/master
+#define STB_IMAGE_IMPLEMENTATION
+#include "external_libs/stb_image.h"
+// #define STB_IMAGE_WRITE_IMPLEMENTATION
+// #include "external_libs/stb_image_write.h"
+#include "utils/convert_utils.hpp"
+
 #include <iostream>
-#include <filesystem>
 #include <Eigen/Sparse>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-
-using std::filesystem::current_path;
-
-// Function to convert RGB to grayscale
-Eigen::MatrixXd convertToGrayscale(const Eigen::MatrixXd& red, const Eigen::MatrixXd& green,
-                                   const Eigen::MatrixXd& blue) {
-    return 0.299 * red + 0.587 * green + 0.114 * blue;
-}
 
 int main() {
     // Load the image using stb_image
-    const char* INPUT_IMG_PATH = "../challenge-1/Albert_Einstein_Head.jpg";
+    const char* INPUT_IMG_PATH = "../challenge-1/resources/Albert_Einstein_Head.jpeg";
     int width, height, channels;
     unsigned char* image_data = stbi_load(INPUT_IMG_PATH, &width, &height,
                                           &channels, 3);  // Force load as RGB
@@ -45,7 +39,7 @@ int main() {
     stbi_image_free(image_data);
 
     // Create a grayscale matrix
-    Eigen::MatrixXd gray = convertToGrayscale(red, green, blue);
+    const Eigen::MatrixXd gray = convert_utils::convertToGrayscale(red, green, blue);
 
     Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> grayscale_image(height, width);
     // Use Eigen's unaryExpr to map the grayscale values (0.0 to 1.0) to 0 to 255
