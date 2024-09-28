@@ -2,7 +2,8 @@
 
 **Goal**: apply image filters and find the approximate solution of linear system to process a greyscale image.
 
-**Data**: download the file [einstein.jpg](https://commons.wikimedia.org/wiki/File:Albert_Einstein_Head.jpg) (256px)
+**Data**: download the file [einstein.jpg](https://commons.wikimedia.org/wiki/File:Albert_Einstein_Head.jpg)
+([256px][1])
 and move it to your working directory.
 
 **Tasks**:
@@ -11,3 +12,6 @@ and move it to your working directory.
    between 0 (black) and 255 (white). Report the size of the matrix.
 2. Introduce a noise signal into the loaded image by adding random fluctuations of color ranging 
    between $[-50, 50]$ to each pixel. Export the resulting image in `.png` and upload it.
+
+
+[1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
