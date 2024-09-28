@@ -1,5 +1,5 @@
-#ifndef CONVERT_IMPLEMENTATION
-#define CONVERT_IMPLEMENTATION
+#ifndef CONVERT_UTILS
+#define CONVERT_UTILS
 
 #include <Eigen/Dense>
 

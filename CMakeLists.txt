@@ -14,4 +14,5 @@ include_directories(
 add_executable(
         main challenge-1/src/main.cpp
         challenge-1/src/utils/convert_utils.cpp
+        challenge-1/src/utils/image_manipulation.cpp
 )
