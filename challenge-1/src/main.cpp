@@ -1,16 +1,20 @@
 // from https://github.com/nothings/stb/tree/master
-#define STB_IMAGE_IMPLEMENTATION
-#include "external_libs/stb_image.h"
+// #define STB_IMAGE_IMPLEMENTATION
+// #include "external_libs/stb_image.h"
 // #define STB_IMAGE_WRITE_IMPLEMENTATION
 // #include "external_libs/stb_image_write.h"
 
 #include <iostream>
+#include <random>
 #include <Eigen/Sparse>
 
 #include "utils/image_manipulation.hpp"
 
 
 int main() {
+    /**********
+     * Task 1 *
+     **********/
     // Load image from file
     int width = 0, height = 0, channels = 0;
     unsigned char* image_data = image_manipulation::load_image_from_file(width, height, channels);
@@ -26,17 +30,46 @@ int main() {
                  "Report the size of the matrix.\n"
                  "Answer: " << einstein_img.rows() << " * " << einstein_img.cols() << " (rows * cols)\n";
 
-    /*
-    // Save the image using stbi_write_jpg
-    const std::string output_image_path1 = "dark_image.jpg";
-    stbi_write_jpg(output_image_path1.c_str(), width, height, 1, einstein_img.data(), 100);
-    if (stbi_write_jpg(
-        output_image_path1.c_str(), width, height, 1, einstein_img.data(), 100
-        ) == 0) {
-        std::cerr << "Error: Could not save grayscale image" << std::endl;
-        return 1;
+    /**********
+     * Task 2 *
+     **********/
+    // Create a random device and a Mersenne Twister random number generator
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> d(-50, 50);
+
+    // Create result matrix
+    Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> einstein_noise(height, width);
+    Eigen::MatrixXd dark(height, width), light(height, width);
+
+    // Fill the matrices with image data
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            const int index = (i * width + j) * channels;  // 1 channel (Greyscale)
+            double new_value = static_cast<double>(image_data[index]) + d(gen);
+            new_value = new_value > 255.0 ? 255.0 : (new_value < 0 ? 0 : new_value);
+            dark(i, j) = new_value;
+            light(i, j) = new_value;
+            // Less optimized implementation
+            // dark(i, j) = std::max(std::min(static_cast<double>(image_data[index]) + d(gen), 255.), 0.);
+            // light(i, j) = std::max(std::min(static_cast<double>(image_data[index]) + d(gen), 255.), 0.);
+        }
     }
-    */
+
+    // Use Eigen's unaryExpr to map the grayscale values
+    einstein_noise = dark.unaryExpr([](const double val) -> unsigned char {
+      return static_cast<unsigned char>(val);
+    });
+
+    // Save the image using stbi_write_jpg
+    const char* noise_filename = "noise.png";
+    image_manipulation::save_image_to_file("noise.png", width, height, 1, einstein_noise.data(), width);
+
+    // Print Task 2
+    std::cout << "\nTask 2. Introduce a noise signal into the loaded image "
+                 "by adding random fluctuations of color ranging between [-50, 50] to each pixel. "
+                 "Export the resulting image in .png and upload it.\n"
+                 "Answer: " << "see the figure call " << noise_filename << '\n';
 
     return 0;
 }

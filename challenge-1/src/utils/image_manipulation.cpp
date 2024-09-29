@@ -1,8 +1,12 @@
 #include "image_manipulation.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "../external_libs/stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../external_libs/stb_image_write.h"
 
 #include <iostream>
+#include <random>
 
 
 namespace image_manipulation {
@@ -21,6 +25,14 @@ namespace image_manipulation {
         }
         std::cout << "Image loaded: " << width << " x " << height << " with " << channels << " channels\n";
         return image_data;
+    }
+
+    void save_image_to_file(
+        const char *filename, const int x, const int y, const int comp, const void *data, const int stride_bytes
+    ) {
+        if (stbi_write_png(filename, x, y, comp, data, stride_bytes) == 0) {
+            throw std::runtime_error("Failed to write noise.png image.");
+        }
     }
 
     void convert_bw_image_to_matrix(
@@ -46,5 +58,5 @@ namespace image_manipulation {
         matrix_result = dark.unaryExpr([](const double val) -> unsigned char {
           return static_cast<unsigned char>(val);// * 255.0);
         });
-    };
+    }
 }
