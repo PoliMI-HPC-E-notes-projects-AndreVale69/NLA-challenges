@@ -6,7 +6,6 @@
 #include "../external_libs/stb_image_write.h"
 
 #include <iostream>
-#include <random>
 
 
 namespace image_manipulation {
@@ -33,30 +32,5 @@ namespace image_manipulation {
         if (stbi_write_png(filename, x, y, comp, data, stride_bytes) == 0) {
             throw std::runtime_error("Failed to write noise.png image.");
         }
-    }
-
-    void convert_bw_image_to_matrix(
-        const int width, const int height, const int channels,
-        unsigned char* &image_data,
-        Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> &matrix_result
-    ) {
-        // Prepare Eigen matrices for each RGB channel
-        Eigen::MatrixXd dark(height, width), light(height, width);
-
-        // Fill the matrices with image data
-        for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
-                const int index = (i * width + j) * channels;  // 1 channel (Greyscale)
-                dark(i, j) = static_cast<double>(image_data[index]);// / 255.0;
-                light(i, j) = static_cast<double>(image_data[index]); // / 255.0;
-            }
-        }
-        // Free memory
-        stbi_image_free(image_data);
-
-        // Use Eigen's unaryExpr to map the grayscale values (0.0 to 1.0) to 0 to 255
-        matrix_result = dark.unaryExpr([](const double val) -> unsigned char {
-          return static_cast<unsigned char>(val);// * 255.0);
-        });
     }
 }

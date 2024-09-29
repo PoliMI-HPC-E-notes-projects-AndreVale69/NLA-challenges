@@ -23,5 +23,7 @@ and move it to your working directory.
 3. Reshape the original and noisy images as vectors $v$ and $w$, respectively. 
    Verify that each vector has $m \: n$ components. Report here the Euclidean norm of $v$.
 
+   Answer: $35576.6$
+
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
