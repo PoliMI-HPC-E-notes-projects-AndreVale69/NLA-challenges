@@ -11,15 +11,15 @@
 namespace image_manipulation {
     unsigned char *load_image_from_file(int &width, int &height, int &channels) {
         // Load the image using stb_image
-        const char* INPUT_IMG_PATH = "../challenge-1/resources/Albert_Einstein_Head.jpeg";
+        const char* INPUT_IMG_PATH = "../challenge-1/resources/Albert_Einstein_Head.jpg";
         // int width = 0, height = 0, channels = 0;
         unsigned char* image_data = stbi_load(INPUT_IMG_PATH, &width, &height, &channels, 1);
         if (!image_data) {
             image_data = stbi_load(
-                "../resources/Albert_Einstein_Head.jpeg", &width, &height, &channels, 1
+                "../resources/Albert_Einstein_Head.jpg", &width, &height, &channels, 1
             );
             if (!image_data) {
-                throw std::runtime_error("Could not load image Albert_Einstein_Head.jpeg");
+                throw std::runtime_error("Could not load image Albert_Einstein_Head.jpg");
             }
         }
         std::cout << "Image loaded: " << width << " x " << height << " with " << channels << " channels\n";

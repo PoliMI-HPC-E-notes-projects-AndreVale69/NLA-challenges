@@ -21,7 +21,6 @@ int main() {
 
     // Get matrix from image
     Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> einstein_img(height, width);
-    // image_manipulation::convert_bw_image_to_matrix(width, height, channels, image_data, einstein_img);
 
     // Prepare Eigen matrices for each RGB channel
     Eigen::MatrixXd dark_einstein_img(height, width), light_einstein_img(height, width);
@@ -112,6 +111,27 @@ int main() {
     std::cout << "\nTask 3. Reshape the original and noisy images as vectors v and w, respectively. "
         "Verify that each vector has m n components. Report here the Euclidean norm of v.\n"
         "Answer: " << v_norm;
+
+
+    /**********
+     * Task 4 *
+     **********/
+    /*
+4. Write the convolution operation corresponding to the smoothing kernel $H_{av2}$ as a matrix vector multiplication
+   between a matrix $A_{1}$ having size $mn \times mn$ and the image vector.
+
+   Report the number of non-zero entries in $A_{1}$.
+   $$$
+       H_{av2} = \dfrac{1}{9}\begin{bmatrix}
+           1 & 1 & 1 \\
+           1 & 1 & 1 \\
+           1 & 1 & 1
+       \end{bmatrix}
+   $$$
+     */
+    // Create smoothing filter H_av2
+    Eigen::MatrixXd H_av2 = (static_cast<float>(1) / static_cast<float>(9)) * Eigen::MatrixXd::Ones(3,3);
+
 
     return 0;
 }
