@@ -23,19 +23,20 @@ and move it to your working directory.
 3. Reshape the original and noisy images as vectors $v$ and $w$, respectively. 
    Verify that each vector has $m \: n$ components. Report here the Euclidean norm of $v$.
 
-   Answer: $35576.6$
+   Answer: $35576.621650$
 
 4. Write the convolution operation corresponding to the smoothing kernel $H_{av2}$ as a matrix vector multiplication 
-   between a matrix $A_{1}$ having size $mn \times mn$ and the image vector. 
+   between a matrix $A_{1}$ having size $mn \times mn$ and the image vector.
 
-   Report the number of non-zero entries in $A_{1}$. Where
-   $
-       H_{av2} = \dfrac{1}{9}\begin{bmatrix}
-           1 & 1 & 1 \\
-           1 & 1 & 1 \\
-           1 & 1 & 1
-       \end{bmatrix}
-   $
+   Report the number of non-zero entries in $A_{1}$.
+
+```math
+ H_{av2} = \dfrac{1}{9}\begin{bmatrix}
+     1 & 1 & 1 \\
+     1 & 1 & 1 \\
+     1 & 1 & 1
+ \end{bmatrix}
+```
 
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
