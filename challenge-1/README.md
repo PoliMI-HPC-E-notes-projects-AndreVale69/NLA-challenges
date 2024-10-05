@@ -47,5 +47,19 @@ and move it to your working directory.
 
    <img src="resources/smoothing.png">
 
+6. Write the convolution operation corresponding to the sharpening kernel $H_{sh2}$ as a matrix vector multiplication
+   by a matrix $A_{2}$ having size $mn \times mn$. Report the number of non-zero entries in $A_{2}$.
+   Is $A_{2}$ symmetric?
+
+   Answer: 87296, _is $A_{2}$ symmetric?_ true.
+
+```math
+ H_{sh2} = \dfrac{1}{9}\begin{bmatrix}
+     0 & -3 & 0 \\
+     -1 & 9 & -3 \\
+     0 & -1 & 0
+ \end{bmatrix}
+```
+
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
