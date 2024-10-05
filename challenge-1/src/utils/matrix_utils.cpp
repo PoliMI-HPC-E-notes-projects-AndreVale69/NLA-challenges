@@ -100,4 +100,100 @@ namespace matrix_utils {
         return filter_matrix;
     }
 
+    Eigen::SparseMatrix<double> create_convolution_matrix(
+        const Eigen::Matrix<double, 3, 3> &filter, const Eigen::MatrixXd &matrix
+    ) {
+        // flag used to understand when to apply rows_offset value
+        bool almost_one_col_valid = false;
+        // rows_filled: the number of filled rows, in the end it should be equal
+        //              to the number of rows of the convolution matrix.
+        // rows_offset: an offset used to skip n zeros when the algorithm moves to the next row of the filter;
+        //              so the algorithm considers the first row of the filter value,
+        //              so rows_offset skips zeros, considers the middle values of the filter, and so on.
+        // offset_filter: a counter that is updated each time the algorithm evaluates the neighbours;
+        //                it is used to access the filter array; it allows to avoid the double index access (i,j).
+        // upper_entries_to_skip: the number of entries to skip;
+        //                        it allows to create a Toeplitz matrix without worrying about
+        //                        the exact position in the original array; it is applied from the number of row 2.
+        // four variables are used to define the boundaries of neighbourhood research:
+        //      - row_lower_bound_neighbour
+        //      - row_upper_bound_neighbour
+        //      - col_left_bound_neighbour
+        //      - col_right_bound_neighbour
+        // they are used in the for statement
+        int rows_filled = 0, rows_offset = 0, offset_filter = 0, upper_entries_to_skip = 0,
+            row_lower_bound_neighbour = 0, row_upper_bound_neighbour = 0,
+            col_left_bound_neighbour = 0, col_right_bound_neighbour = 0;
+        // const allocation of rows and cols of the original matrix, and matrix size;
+        // this avoids multiple memory accesses
+        const int matrix_rows = static_cast<int>(matrix.rows());
+        const int matrix_cols = static_cast<int>(matrix.cols());
+        const long matrix_size = matrix.size();
+        // use small array to take the values of the filter;
+        // the size is so small that accessing an element n is very fast (O(n))
+        // and negligible (in terms of performance)
+        const double * filter_array = filter.data();
+        // create the convolution (sparse) matrix and the triplet
+        Eigen::SparseMatrix<double> convolution_matrix(matrix_size, matrix_size);
+        std::vector<Eigen::Triplet<double>> triplet_list;
+        triplet_list.reserve(filter.size() * matrix_size);
+
+        // for each row of the matrix
+        for (int row = 0; row < matrix_rows; ++row) {
+            row_upper_bound_neighbour = row - 1;
+            row_lower_bound_neighbour = row + 1;
+            upper_entries_to_skip = (row - 1) * matrix_cols;
+            // for each column of the matrix
+            for (int col = 0; col < matrix_cols; ++col, ++rows_filled) {
+                offset_filter = 0;
+                rows_offset = 0;
+                /**
+                 * check the neighbours:
+                 * x x x
+                 * x o x
+                 * x x x
+                 * where o is the centre of the filter and the x's are its neighbours;
+                 * set the new column boundaries before the check
+                 */
+                col_left_bound_neighbour = col-1;
+                col_right_bound_neighbour = col+1;
+                for (int i_row = row_upper_bound_neighbour; i_row <= row_lower_bound_neighbour; ++i_row) {
+                    // reset the flag
+                    almost_one_col_valid = false;
+                    for (int j_col = col_left_bound_neighbour; j_col <= col_right_bound_neighbour; ++j_col, ++offset_filter) {
+                        // check that the index neighbour is valid;
+                        // this is essential if the filter is applied to the edges of the matrix
+                        if (isIndexOutOfBounds(matrix, i_row, j_col)) {
+                            continue;
+                        }
+                        // update the flag, the rows_offset will be updated
+                        almost_one_col_valid = true;
+                        // optimization to avoid garbage (zero) values; add iff > 0;
+                        // use some available memory to store zeros;
+                        // this should increase speed, but is it really necessary?
+                        if (const auto filter_value = filter_array[offset_filter]; filter_value > 0.0) {
+                            // if there is almost one row to skip, use the upper_entries_to_skip
+                            if (row >= 2) {
+                                triplet_list.emplace_back(
+                                    rows_filled, j_col+rows_offset+upper_entries_to_skip, filter_value
+                                );
+                                continue;
+                            }
+                            triplet_list.emplace_back(rows_filled, j_col+rows_offset, filter_value);
+                        }
+                    }
+                    // if almost a column has been evaluated, update the rows_offset counter
+                    if (almost_one_col_valid) {
+                        rows_offset += matrix_cols;
+                    }
+                }
+            }
+        }
+        assert(rows_filled == matrix_size);
+        // create the new sparse matrix using the triplet;
+        // hey garbage collector, the triplet will be all yours soon!
+        convolution_matrix.setFromTriplets(triplet_list.begin(), triplet_list.end());
+        return convolution_matrix;
+    }
+
 }

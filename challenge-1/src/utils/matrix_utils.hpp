@@ -34,6 +34,16 @@ namespace matrix_utils {
      * @throw std::invalid_argument if the filter name doesn't exist.
      */
     Eigen::MatrixXd create_filter(Filter filter_name);
+
+    /**
+     * Create a convolution matrix. It consists of (5*4) + 3*(cols-2)*2 + 3*(rows-2)*2 non-zero entries.
+     * @param filter filter to be applied to the matrix; its values will be filled into the convolution matrix.
+     * @param matrix matrix to which the convolution matrix is applied.
+     * @return the convolution matrix as a sparse matrix.
+     */
+    Eigen::SparseMatrix<double> create_convolution_matrix(
+        const Eigen::Matrix<double, 3, 3> &filter, const Eigen::MatrixXd &matrix
+    );
 }
 
 #endif

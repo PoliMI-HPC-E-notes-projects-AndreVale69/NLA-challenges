@@ -27,76 +27,6 @@ enum Filter: short {
     laplacian_edge_lap
 };
 
-SparseMatrix<double> create_convolution_matrix(const Matrix<double, 3, 3> &filter, const MatrixXd &matrix) {
-    bool almost_one_col_valid = false;
-    int rows_filled = 0, rows_offset = 0, offset_filter = 0,
-        row_lower_bound_neighbour = 0, row_upper_bound_neighbour = 0,
-        col_left_bound_neighbour = 0, col_right_bound_neighbour = 0;
-    // const allocation of rows and cols of the original matrix, and matrix size;
-    // this avoids multiple memory accesses
-    const int matrix_rows = static_cast<int>(matrix.rows());
-    const int matrix_cols = static_cast<int>(matrix.cols());
-    const long matrix_size = matrix.size();
-    // use small array to take the values of the filter;
-    // the size is so small that accessing an element n is very fast (O(n))
-    // and negligible (in terms of performance)
-    const double * filter_array = filter.data();
-    // create the convolution (sparse) matrix and the triplet
-    SparseMatrix<double> convolution_matrix(matrix_size, matrix_size);
-    std::vector<Triplet<double>> triplet_list;
-    triplet_list.reserve(filter.size() * matrix_size);
-
-    // for each row of the matrix
-    for (int row = 0; row < matrix_rows; ++row) {
-        row_upper_bound_neighbour = row - 1;
-        row_lower_bound_neighbour = row + 1;
-        // for each column of the matrix
-        for (int col = 0; col < matrix_cols; ++col, ++rows_filled) {
-            offset_filter = 0;
-            rows_offset = 0;
-            /**
-             * check the neighbours:
-             * x x x
-             * x o x
-             * x x x
-             * where o is the centre of the filter and the x's are its neighbours;
-             * set the new column boundaries before the check
-             */
-            col_left_bound_neighbour = col-1;
-            col_right_bound_neighbour = col+1;
-            for (int i_row = row_upper_bound_neighbour; i_row <= row_lower_bound_neighbour; ++i_row) {
-                // reset the flag
-                almost_one_col_valid = false;
-                for (int j_col = col_left_bound_neighbour; j_col <= col_right_bound_neighbour; ++j_col, ++offset_filter) {
-                    // check that the index neighbour is valid;
-                    // this is essential when the filter is applied to the edge of the matrix
-                    if (isIndexOutOfBounds(matrix, i_row, j_col)) {
-                        continue;
-                    }
-                    almost_one_col_valid = true;
-                    // optimization to avoid garbage (zero) values; add iff > 0;
-                    // use some available memory to store zeros;
-                    // this should increase speed, but is it really necessary?
-                    if (const auto filter_value = filter_array[offset_filter]; filter_value > 0.0) {
-                        if (row >= 2) {
-                            triplet_list.emplace_back(rows_filled, j_col+rows_offset+(row-1)*matrix_cols, filter_value);
-                            continue;
-                        }
-                        triplet_list.emplace_back(rows_filled, j_col+rows_offset, filter_value);
-                    }
-                }
-                if (almost_one_col_valid) {
-                    rows_offset += matrix_cols;
-                }
-            }
-        }
-    }
-    // create the new sparse matrix using the triplet;
-    // hey garbage collector, the triplet will be all yours soon!
-    convolution_matrix.setFromTriplets(triplet_list.begin(), triplet_list.end());
-    return convolution_matrix;
-}
-
 int main() {
     /**********
      * Task 1 *
@@ -205,7 +135,6 @@ int main() {
         v(i) = static_cast<double>(image_data[i]);
     }
     // Load noise image and create noise image as w vector
-
     try {
         noise_image_data = image_manipulation::load_image_from_file(
             "../challenge-1/resources/noise.png", width, height, channels
