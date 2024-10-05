@@ -1,3 +1,4 @@
+# author: AndreVale69
 cmake_minimum_required(VERSION 3.29)
 project(nla_challenges)
 

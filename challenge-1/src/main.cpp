@@ -101,6 +101,7 @@ using namespace matrix_utils;
 //     return convolution_matrix;
 // }
 
+// TODO: tmp workaround to include the enum
 enum Filter: short {
     smoothing_av1,
     smoothing_av2,
@@ -112,29 +113,56 @@ enum Filter: short {
 };
 
 SparseMatrix<double> create_convolution_matrix_v2(const Matrix<double, 3, 3> &filter, const MatrixXd &matrix) {
+    bool almost_one_col_valid = false;
+    int rows_filled = 0, rows_offset = 0, offset_filter = 0,
+        row_lower_bound_neighbour = 0, row_upper_bound_neighbour = 0,
+        col_left_bound_neighbour = 0, col_right_bound_neighbour = 0;
+    // const allocation of rows and cols of the original matrix, and matrix size;
+    // this avoids multiple memory accesses
     const int matrix_rows = static_cast<int>(matrix.rows());
     const int matrix_cols = static_cast<int>(matrix.cols());
-    SparseMatrix<double> convolution_matrix(matrix.size(), matrix.size());
+    const long matrix_size = matrix.size();
+    // use small array to take the values of the filter;
+    // the size is so small that accessing an element n is very fast (O(n))
+    // and negligible (in terms of performance)
+    const double * filter_array = filter.data();
+    // create the convolution (sparse) matrix and the triplet
+    SparseMatrix<double> convolution_matrix(matrix_size, matrix_size);
     std::vector<Triplet<double>> triplet_list;
-    triplet_list.reserve(filter.size() * matrix_rows * matrix_cols);
+    triplet_list.reserve(filter.size() * matrix_size);
 
-    int rows_filled = 0, rows_offset = 0, offset_filter = 0, j_col = 0;
-    bool almost_one_col_valid = false;
-    const auto filter_array = filter.array();
-
+    // for each row of the matrix
     for (int row = 0; row < matrix_rows; ++row) {
+        row_upper_bound_neighbour = row - 1;
+        row_lower_bound_neighbour = row + 1;
+        // for each column of the matrix
         for (int col = 0; col < matrix_cols; ++col, ++rows_filled) {
             offset_filter = 0;
             rows_offset = 0;
-            for (int i_row = row-1; i_row < row+1+1; ++i_row) {
+            /**
+             * check the neighbours:
+             * x x x
+             * x o x
+             * x x x
+             * where o is the centre of the filter and the x's are its neighbours;
+             * set the new column boundaries before the check
+             */
+            col_left_bound_neighbour = col-1;
+            col_right_bound_neighbour = col+1;
+            for (int i_row = row_upper_bound_neighbour; i_row <= row_lower_bound_neighbour; ++i_row) {
+                // reset the flag
                 almost_one_col_valid = false;
-                for (j_col = col-1; j_col < col+1+1; ++j_col, ++offset_filter) {
+                for (int j_col = col_left_bound_neighbour; j_col <= col_right_bound_neighbour; ++j_col, ++offset_filter) {
+                    // check that the index neighbour is valid;
+                    // this is essential when the filter is applied to the edge of the matrix
                     if (isIndexOutOfBounds(matrix, i_row, j_col)) {
                         continue;
                     }
                     almost_one_col_valid = true;
-                    // optimization to avoid garbage values; add iff > 0
-                    if (const auto filter_value = filter_array.operator()(offset_filter); filter_value > 0.0) {
+                    // optimization to avoid garbage (zero) values; add iff > 0;
+                    // use some available memory to store zeros;
+                    // this should increase speed, but is it really necessary?
+                    if (const auto filter_value = filter_array[offset_filter]; filter_value > 0.0) {
                         triplet_list.emplace_back(rows_filled, j_col+rows_offset, filter_value);
                     }
                 }
@@ -144,8 +172,9 @@ SparseMatrix<double> create_convolution_matrix_v2(const Matrix<double, 3, 3> &fi
             }
         }
     }
+    // create the new sparse matrix using the triplet;
+    // hey garbage collector, the triplet will be all yours soon!
     convolution_matrix.setFromTriplets(triplet_list.begin(), triplet_list.end());
-
     return convolution_matrix;
 }
 
@@ -267,11 +296,23 @@ int main() {
     MatrixXd H_av2 = create_filter(static_cast<matrix_utils::Filter>(smoothing_av2));
 
     // Create convolution matrix
-    SparseMatrix<double> A2 = create_convolution_matrix_v2(H_av2, dark_einstein_img);
+    MatrixXd debug(5, 4);
+    int counter = 1;
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            counter++;
+            debug(i, j) = static_cast<double>(counter);
+        }
+    }
+    // SparseMatrix<double> A2 = create_convolution_matrix_v2(H_av2, dark_einstein_img);
+    SparseMatrix<double> A2 = create_convolution_matrix_v2(H_av2, debug);
 
-    printf("\nTask 4.Write the convolution operation corresponding to the smoothing kernel H_{av2} "
+    cout << "\nTask 4.Write the convolution operation corresponding to the smoothing kernel H_{av2} "
            "as a matrix vector multiplication between a matrix A_{1} having size mn times mn and the image vector."
-           "Report the number of non-zero entries in A_{1}.\nAnswer: %ld\n", A2.nonZeros());
+           "Report the number of non-zero entries in A_{1}.\nAnswer: \n" << A2.toDense();
+    // printf("\nTask 4.Write the convolution operation corresponding to the smoothing kernel H_{av2} "
+    //        "as a matrix vector multiplication between a matrix A_{1} having size mn times mn and the image vector."
+    //        "Report the number of non-zero entries in A_{1}.\nAnswer: %ld\n", A2.toDense());
 
 
     /**********
@@ -279,19 +320,19 @@ int main() {
      **********/
 
     // task 5 :
-    VectorXd smoothed_img = A2*w;
-    int size = height * width;
-    // vector<unsigned char> out_smoothed(size);
-
-    // for(int i = 0; i<size; ++i){
-    //   out_smoothed[i] = static_cast<unsigned char>(smoothed_img[i]);
-    // }
-
-    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> out_smoothed = smoothed_img.unaryExpr([](const double val) -> unsigned char {
-      return static_cast<unsigned char>(val);
-    });
-
-    image_manipulation::save_image_to_file("smoothing.png", width, height, 1, out_smoothed.data(), width);
+    // VectorXd smoothed_img = A2*w;
+    // int size = height * width;
+    // // vector<unsigned char> out_smoothed(size);
+    //
+    // // for(int i = 0; i<size; ++i){
+    // //   out_smoothed[i] = static_cast<unsigned char>(smoothed_img[i]);
+    // // }
+    //
+    // Matrix<unsigned char, Dynamic, Dynamic, RowMajor> out_smoothed = smoothed_img.unaryExpr([](const double val) -> unsigned char {
+    //   return static_cast<unsigned char>(val);
+    // });
+    //
+    // image_manipulation::save_image_to_file("smoothing.png", width, height, 1, out_smoothed.data(), width);
 
     // Product<SparseMatrix<double>, VectorXd> res = A2 * w;
     // MatrixXd einstein_smoothing(height, width);
