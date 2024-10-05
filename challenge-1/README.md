@@ -30,6 +30,8 @@ and move it to your working directory.
 
    Report the number of non-zero entries in $A_{1}$.
 
+   Answer: $782086$
+
 ```math
  H_{av2} = \dfrac{1}{9}\begin{bmatrix}
      1 & 1 & 1 \\
@@ -37,6 +39,9 @@ and move it to your working directory.
      1 & 1 & 1
  \end{bmatrix}
 ```
+
+5. Apply the previous smoothing filter to the noisy image by performing the matrix vector multiplication $A_{1}w$.
+   Export the resulting image.
 
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=

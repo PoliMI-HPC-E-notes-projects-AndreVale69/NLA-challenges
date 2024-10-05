@@ -11,9 +11,7 @@
 
 namespace image_manipulation {
     unsigned char *load_image_from_file(int &width, int &height, int &channels) {
-        // Load the image using stb_image
         const char* input_img_path = "../challenge-1/resources/Albert_Einstein_Head.jpg";
-        // int width = 0, height = 0, channels = 0;
         unsigned char* image_data = stbi_load(input_img_path, &width, &height, &channels, 1);
         if (!image_data) {
             image_data = stbi_load(
@@ -24,6 +22,7 @@ namespace image_manipulation {
             }
         }
         std::cout << "Image loaded: " << width << " x " << height << " with " << channels << " channels\n";
+        stbi_image_free(image_data);
         return image_data;
     }
 

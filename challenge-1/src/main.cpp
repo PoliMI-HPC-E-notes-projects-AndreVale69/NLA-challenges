@@ -10,39 +10,43 @@
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 
+#include "external_libs/stb_image_write.h"
 #include "utils/image_manipulation.hpp"
+#include "utils/matrix_utils.hpp"
 
 using namespace std;
 using namespace Eigen;
+using namespace matrix_utils;
 
-/**
- * Take an Eigen MatrixXd and return a sparse matrix with zero padding at the boundaries.
- * The sparse matrix structure is used to avoid wasting space.
- * @param matrix matrix to pad.
- * @return padded original matrix.
- */
-SparseMatrix<float> zero_padding(const MatrixXd &matrix) {
-    const long rows = matrix.rows();
-    const long cols = matrix.cols();
-    const long zero_padding_rows = rows + 2;
-    const long zero_padding_cols = cols + 2;
-    SparseMatrix<float> zero_padding_matrix(zero_padding_rows, zero_padding_cols);
-    std::vector<Triplet<float>> triplet_list;
-    // pre allocation optimization
-    triplet_list.reserve(matrix.size());
-    for (int r_matrix = 0, r_zero_pad_matrix = 1; r_matrix < rows; ++r_matrix, ++r_zero_pad_matrix) {
-        Matrix<double, -1, -1> row_matrix = matrix.row(r_matrix);
-        for (int c_matrix = 0, c_zero_pad_matrix = 1; c_matrix < cols; ++c_matrix, ++c_zero_pad_matrix) {
-            triplet_list.emplace_back(r_zero_pad_matrix, c_zero_pad_matrix, row_matrix(c_matrix));
-        }
-    }
-    zero_padding_matrix.setFromTriplets(triplet_list.begin(), triplet_list.end());
-    // std::cout << "\nRow0:\n" << zero_padding_matrix.row(0) << '\n';
-    // std::cout << "\nRown:\n" << zero_padding_matrix.row(rows+1) << '\n';
-    // std::cout << "\nCol0:\n" << zero_padding_matrix.col(0) << '\n';
-    // std::cout << "\nColn:\n" << zero_padding_matrix.col(cols+1) << '\n';
-    return zero_padding_matrix;
-}
+
+// auto createConvolutionMatrixv3(const int m, const int n) {
+//     const int size = m * n;
+//     SparseMatrix<double> A1(size, size);
+//     pmr::vector<Triplet<double>> tripletList;
+//     tripletList.reserve(size * 9);
+//
+//     auto kernel = (static_cast<float>(1) / static_cast<float>(9)) * MatrixXd::Ones(3,3);
+//
+//     for (int i = 0; i < m; ++i) {
+//         for (int j = 0; j < n; ++j) {
+//             int row = i * n + j;
+//             for (int ki = -1; ki <= 1; ++ki) {
+//                 for (int kj = -1; kj <= 1; ++kj) {
+//                     int ni = i + ki;
+//                     int nj = j + kj;
+//                     if (ni >= 0 && ni < m && nj >= 0 && nj < n) {
+//                         int col = ni * n + nj;
+//                         tripletList.emplace_back(row, col, kernel(ki + 1, kj + 1));
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//
+//     A1.setFromTriplets(tripletList.begin(), tripletList.end());
+//     return A1;
+// }
+
 
 // SparseMatrix<float> create_convolution_matrix(const Matrix<float, 3, 3> &filter, const MatrixXd &matrix) {
 //     const SparseMatrix<float> padded_matrix = zero_padding(matrix);
@@ -92,33 +96,33 @@ SparseMatrix<float> zero_padding(const MatrixXd &matrix) {
 //         offset += padded_matrix_cols;
 //     }
 //     // assert(filled_rows == convolution_matrix_rows);
-//     // TODO: fix index!
 //     convolution_matrix.setFromTriplets(triplet_list.begin(), triplet_list.end());
 //
 //     return convolution_matrix;
 // }
 
-bool isIndexOutOfBounds(const MatrixXd& matrix, const int row, const int col) {
-    return row < 0 || row >= matrix.rows() || col < 0 || col >= matrix.cols();
-}
+enum Filter: short {
+    smoothing_av1,
+    smoothing_av2,
+    sharpening_sh1,
+    sharpening_sh2,
+    sobel_vertical_ed1,
+    sobel_horizontal_ed2,
+    laplacian_edge_lap
+};
 
-SparseMatrix<double> create_convolution_matrix_v2(const Matrix<float, 3, 3> &filter, const MatrixXd &matrix) {
+SparseMatrix<double> create_convolution_matrix_v2(const Matrix<double, 3, 3> &filter, const MatrixXd &matrix) {
     const int matrix_rows = static_cast<int>(matrix.rows());
     const int matrix_cols = static_cast<int>(matrix.cols());
     SparseMatrix<double> convolution_matrix(matrix.size(), matrix.size());
     std::vector<Triplet<double>> triplet_list;
     triplet_list.reserve(filter.size() * matrix_rows * matrix_cols);
 
-    int rows_filled = 0;
-    int rows_offset = 0;
-    int offset_filter = 0;
-    int j_col = 0;
+    int rows_filled = 0, rows_offset = 0, offset_filter = 0, j_col = 0;
     bool almost_one_col_valid = false;
     const auto filter_array = filter.array();
 
     for (int row = 0; row < matrix_rows; ++row) {
-        // lower_row_offset = row-1;
-        // upper_row_offset = row+1;
         for (int col = 0; col < matrix_cols; ++col, ++rows_filled) {
             offset_filter = 0;
             rows_offset = 0;
@@ -165,8 +169,7 @@ int main() {
             dark_einstein_img(i, j) = static_cast<double>(image_data[row_offset + j]);
         }
     }
-    // Free memory
-    stbi_image_free(image_data);
+
     einstein_img = dark_einstein_img.unaryExpr([](const double val) -> unsigned char {
       return static_cast<unsigned char>(val);
     });
@@ -253,7 +256,7 @@ int main() {
 
     printf(
         "\nTask 3. Reshape the original and noisy images as vectors v and w, respectively. "
-        "Verify that each vector has m n components. Report here the Euclidean norm of v.\nAnswer: %f", v.norm()
+        "Verify that each vector has m n components. Report here the Euclidean norm of v.\nAnswer: %f\n", v.norm()
     );
 
 
@@ -261,89 +264,64 @@ int main() {
      * Task 4 *
      **********/
     // Create smoothing filter H_av2
-    Matrix<float, 3, 3> H_av2 = static_cast<float>(1) / static_cast<float>(9) * Matrix<float, 3, 3>::Ones(3,3);
+    MatrixXd H_av2 = create_filter(static_cast<matrix_utils::Filter>(smoothing_av2));
 
-    // SparseMatrix<double, 0, long int> padded_dark_einstein_img(dark_einstein_img.rows()+2, dark_einstein_img.cols()+2);
-    // padded_dark_einstein_img.block<static_cast<int>(dark_einstein_img.rows()), static_cast<int>(dark_einstein_img.cols())>(1,1) = dark_einstein_img.sparseView();
+    // Create convolution matrix
+    SparseMatrix<double> A2 = create_convolution_matrix_v2(H_av2, dark_einstein_img);
 
-    SparseMatrix<double> convolution_matrix = create_convolution_matrix_v2(H_av2, dark_einstein_img);
-    // SparseMatrix<float> convolution_matrix = create_convolution_matrix(H_av2, dark_einstein_img);
+    printf("\nTask 4.Write the convolution operation corresponding to the smoothing kernel H_{av2} "
+           "as a matrix vector multiplication between a matrix A_{1} having size mn times mn and the image vector."
+           "Report the number of non-zero entries in A_{1}.\nAnswer: %ld\n", A2.nonZeros());
 
-    printf("\nNNZ: %ld\n", convolution_matrix.nonZeros());
 
-    auto res = convolution_matrix * w;
+    /**********
+     * Task 5 *
+     **********/
 
-    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> prova = res.unaryExpr([](const double val) -> unsigned char {
+    // task 5 :
+    VectorXd smoothed_img = A2*w;
+    int size = height * width;
+    // vector<unsigned char> out_smoothed(size);
+
+    // for(int i = 0; i<size; ++i){
+    //   out_smoothed[i] = static_cast<unsigned char>(smoothed_img[i]);
+    // }
+
+    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> out_smoothed = smoothed_img.unaryExpr([](const double val) -> unsigned char {
       return static_cast<unsigned char>(val);
     });
 
-    // Save the image using stbi_write_jpg
-    const char* filename = "prova.png";
-    image_manipulation::save_image_to_file(filename, width, height, 1, prova.data(), width);
+    image_manipulation::save_image_to_file("smoothing.png", width, height, 1, out_smoothed.data(), width);
 
-    // Print Task 2
-    printf(
-        "\nAnswer: see the figure %s\n",
-        filesystem::absolute(filename).c_str()
-    );
-
-    // SparseMatrix<long, ColMajor, long> A1(size_vector_einstein_img, size_vector_einstein_img);
-    // auto A1 = createConvolutionMatrix(height, width);
-    // cout << "\nResult: " << A1.rows() << " * " << A1.cols() << " nnz: " << A1.nonZeros() << "\n";
-
-    // Create result matrix
-    // auto resultVector = convolution_matrix * w;
-    // Matrix<unsigned char, Dynamic, Dynamic, RowMajor> A1w;
-    // MatrixXd A1w_dark(height, width), A1w_light(height, width);
+    // Product<SparseMatrix<double>, VectorXd> res = A2 * w;
+    // MatrixXd einstein_smoothing(height, width);
+    // vector<Triplet<double>> triplets;
+    // triplets.reserve(A2.nonZeros());
     //
-    // // Fill the matrices with image data
+    // row_offset = 0;
     // for (int i = 0; i < height; ++i) {
     //     for (int j = 0; j < width; ++j) {
-    //         const int index = (i * width + j) * channels;  // 1 channel (Greyscale)
-    //         A1w_dark(i, j) = static_cast<double>(image_data_mod[index]);
-    //         A1w_light(i, j) = static_cast<double>(image_data_mod[index]);
+    //         triplets.emplace_back(i, j, res[row_offset+j]);
+    //         // einstein_smoothing(i, j) = res.operator()(row_offset+j);// res.coeff(row_offset+j);
     //     }
+    //     row_offset += width;
     // }
+    // SparseMatrix<double> prova;
+    // prova.setFromTriplets(triplets.begin(), triplets.end());
     //
-    // // Use Eigen's unaryExpr to map the grayscale values
-    // A1w = A1w_dark.unaryExpr([](const double val) -> unsigned char {
+    // Matrix<unsigned char, Dynamic, Dynamic, RowMajor> convolution_try = prova.unaryExpr([](const double val) -> unsigned char {
     //   return static_cast<unsigned char>(val);
     // });
     //
     // // Save the image using stbi_write_jpg
-    // const char* a1w_png = "a1w.png";
-    // save_image_to_file(a1w_png, width, height, 1, A1w.data(), width);
-
-    // cout << "Result: " << H_av2.colPivHouseholderQr().solve(einstein_img).nonZeros() << '\n';
-    // cout << "Result: " << (Map<VectorXd>(H_av2.data(), size_vector_einstein_img)).colPivHouseholderQr().solve(einstein_img).nonZeros() << '\n';
+    // const char* filename = "convolution_try.png";
+    // image_manipulation::save_image_to_file(filename, width, height, 1, convolution_try.data(), width);
+    //
+    // // Print Task 5
+    // printf(
+    //     "\nAnswer: see the figure %s\n",
+    //     filesystem::absolute(filename).c_str()
+    // );
 
     return 0;
 }
-
-// auto createConvolutionMatrix(const int m, const int n) {
-//     const int size = m * n;
-//     SparseMatrix<long> A1(size, size);
-//     pmr::vector<Triplet<long>> tripletList;
-//     tripletList.reserve(size * 9);
-//
-//     auto kernel = (static_cast<float>(1) / static_cast<float>(9)) * MatrixXd::Ones(3,3);
-//
-//     for (int i = 0; i < m; ++i) {
-//         for (int j = 0; j < n; ++j) {
-//             int row = i * n + j;
-//             for (int ki = -1; ki <= 1; ++ki) {
-//                 for (int kj = -1; kj <= 1; ++kj) {
-//                     int ni = i + ki;
-//                     int nj = j + kj;
-//                     if (ni >= 0 && ni < m && nj >= 0 && nj < n) {
-//                         int col = ni * n + nj;
-//                         tripletList.push_back(Triplet<long>(row, col, kernel(ki + 1, kj + 1)));
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//
-//     A1.setFromTriplets(tripletList.begin(), tripletList.end());
-//     return A1;
-// }
