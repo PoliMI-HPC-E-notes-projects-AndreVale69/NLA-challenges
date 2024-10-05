@@ -1,249 +1,217 @@
-// from https://github.com/nothings/stb/tree/master
-// #define STB_IMAGE_IMPLEMENTATION
-#include "external_libs/stb_image.h"
-// #define STB_IMAGE_WRITE_IMPLEMENTATION
-// #include "external_libs/stb_image_write.h"
-
-#include <filesystem>
-#include <iostream>
-#include <random>
-#include <Eigen/Sparse>
 #include <Eigen/Dense>
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <Eigen/Sparse>
+// from https://github.com/nothings/stb/tree/master
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
-#include "utils/image_manipulation.hpp"
-
-using namespace std;
 using namespace Eigen;
+using namespace std;
 
-SparseMatrix<float> zero_padding(const MatrixXd &matrix) {
-    const long rows = matrix.rows();
-    const long cols = matrix.cols();
-    SparseMatrix<float> zero_padding_matrix(rows+2, cols+2);
-    std::vector<Triplet<float>> tripletList;
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            tripletList.emplace_back(i+1, j+1, matrix(i, j));
-        }
-    }
-    zero_padding_matrix.setFromTriplets(tripletList.begin(), tripletList.end());
-    return zero_padding_matrix;
-}
+// Funzione per eseguire il zero padding su image_data
+std::vector<unsigned char> zero_pad_image(const unsigned char* image_data, int width, int height) {
+    int new_width = width + 2;   // Larghezza dopo padding
+    int new_height = height + 2; // Altezza dopo padding
 
-auto create_convolution_matrix(Matrix<float, 3, 3> filter, const MatrixXd &matrix) {
-    // 3 + matrix.cols()-3 + 3 + matrix.cols()-3 + 3
-    const int matrix_cols = static_cast<int>(matrix.cols());
-    const int number_of_zero = matrix_cols - 3;
-    SparseMatrix<float> fixed_filter(1, 3+2*matrix_cols);
-    std::vector<Triplet<float>> tripletList;
-    // pre allocation optimization
-    tripletList.reserve(number_of_zero*2 + filter.size());
-    int offset = 0;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            tripletList.emplace_back(0, offset + j, filter(i,j));
-        }
-        offset += 3 + number_of_zero;
-    }
-    fixed_filter.setFromTriplets(tripletList.begin(), tripletList.end());
-    std::cout << "\nFilter:\n" << fixed_filter << std::endl;
-}
+    // Creiamo un nuovo array per l'immagine con padding
+    std::vector<unsigned char> padded_image(new_width * new_height, 0); // Inizializzato con zeri
 
-int main() {
-    /**********
-     * Task 1 *
-     **********/
-    // Load image from file
-    int width = 0, height = 0, channels = 0, row_offset = 0;
-    unsigned char* image_data = image_manipulation::load_image_from_file(width, height, channels);
-
-    // Get matrix from image
-    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> einstein_img(height, width);
-
-    // Prepare Eigen matrix
-    static MatrixXd dark_einstein_img(height, width);
-    // Fill the matrices with image data
+    // Copiamo i dati dell'immagine originale dentro l'immagine con padding
     for (int i = 0; i < height; ++i) {
-        row_offset = i * width;
         for (int j = 0; j < width; ++j) {
-            dark_einstein_img(i, j) = static_cast<double>(image_data[row_offset + j]);
+            // Calcoliamo l'indice nell'immagine originale
+            int original_idx = i * width + j;
+            // Calcoliamo l'indice corrispondente nell'immagine con padding (shiftato di 1 riga e 1 colonna)
+            int padded_idx = (i + 1) * new_width + (j + 1);
+            // Copiamo il valore del pixel
+            padded_image[padded_idx] = image_data[original_idx];
         }
     }
-    // Free memory
+
+    return padded_image;
+}
+
+
+int main(int argc, char* argv[]) {
+  if (argc < 3) {
+    std::cerr << "Usage: " << argv[0] << " <image_path>" << std::endl;
+    return 1;
+  }
+
+  int max = 50;
+  int min = -50;
+
+  const char* input_image_path = argv[1];
+  const char* input_image_path_noise = argv[2];
+
+  // Load the image using stb_image
+  int width, height, channels;
+  int width_noise, height_noise, channels_noise;
+  // for greyscale images force to load only one channel
+  unsigned char* image_data = stbi_load(input_image_path, &width, &height, &channels, 1);
+  unsigned char* image_data_noise = stbi_load(input_image_path_noise, &width_noise, &height_noise, &channels_noise, 1);
+  if (!image_data || !image_data_noise) {
+    std::cerr << "Error: Could not load image " << input_image_path << std::endl;
+    return 1;
+  }
+
+   // Fill the matrices with image data
+  // for (int i = 0; i < height*width; ++i) {
+
+  //   int tmp = image_data[i] + (rand() % (max-min+1) + min);
+
+  //   if(tmp>255){
+  //     tmp = 255;
+  //   }else if(tmp < 0){
+  //     tmp = 0;
+  //   }
+  //   image_data[i] = tmp;
+  // }
+
+   // Numero totale di pixel
+    int num_pixels = width * height;
+
+    // Creiamo un vettore Eigen di dimensioni num_pixels e copiamo i dati dell'immagine
+    Eigen::VectorXd v(num_pixels);
+    for (int i = 0; i < num_pixels; ++i) {
+        v(i) = static_cast<double>(image_data[i]); // Converti da unsigned char a double
+    }
+    Eigen::VectorXd w(num_pixels);
+    for (int i = 0; i < num_pixels; ++i) {
+        w(i) = static_cast<double>(image_data_noise[i]); // Converti da unsigned char a double
+    }
+  
+  if(v.size() == height*width){
+    std::cout<<"are same!!\n";
+    cout<<"v.size(): "<<v.size()<<" = "<<"height*width: "<<height*width<<endl;
+  }
+  cout<<"norm of the vetor: "<<v.norm()<<endl;
+
+  std::cout << "Image loaded: " << height << "x" << width << " with " << channels << " channels." << std::endl;
+
+
+
+// Applichiamo zero padding
+    std::vector<unsigned char> padded_image = zero_pad_image(image_data, width, height);
+
+
+ int size = height * width;
+    
+    // Creiamo una matrice sparsa A_H
+    SparseMatrix<double, RowMajor> A_H(size, size);
+    std::vector<Triplet<double>> tripletList;
+    tripletList.reserve(size);
+    // Filtro 3x3 (media mobile)
+    double weight = 1.0 / 9.0;
+    // Applichiamo il filtro 3x3 su ogni elemento della matrice
+    for (int i = 0; i < height ; i++) {
+        for (int j = 0; j < width; j++) {
+            int pos = i * width + j;  // Posizione dell'elemento nella matrice sparsa
+
+            // Aggiungiamo il valore centrale (m_ij)
+            tripletList.push_back(Triplet<double>(pos, pos, 1.0/9));
+
+            // Aggiungiamo i vicini (sopra, sotto, sinistra, destra, e diagonali)
+            if (i > 0) {
+            tripletList.push_back(Triplet<double>(pos, (i - 1) * width + j, weight));     // Sopra
+            }
+            if(i<height-1){
+            tripletList.push_back(Triplet<double>(pos, (i + 1) * width + j, weight));     // Sotto
+            }
+            if(j>0){
+            tripletList.push_back(Triplet<double>(pos, i * width + (j - 1), weight));     // Sinistra
+            }
+            if(j<width-1){
+            tripletList.push_back(Triplet<double>(pos, i * width + (j + 1), weight));     // Destra
+            }
+            // Diagonali
+            if(i >0 && j > 0){
+            tripletList.push_back(Triplet<double>(pos, (i - 1) * width + (j - 1), weight)); // Sopra-Sinistra
+            }
+            if(i>0 && j<width-1){
+            tripletList.push_back(Triplet<double>(pos, (i - 1) * width + (j + 1), weight)); // Sopra-Destra
+            }
+            if(i<height-1 && j>0){
+            tripletList.push_back(Triplet<double>(pos, (i + 1) * width + (j - 1), weight)); // Sotto-Sinistra
+            }
+            if(i<height-1 && j<width-1){
+            tripletList.push_back(Triplet<double>(pos, (i + 1) * width + (j + 1), weight)); // Sotto-Destra
+            }        
+        }
+    }
+
+cout<<"fin qui vengo!!\n";
+  
+
+  A_H.setFromTriplets(tripletList.begin(), tripletList.end());
+   // Stampiamo la matrice sparsa A_H
+    std::cout << "Matrice sparsa A_H non zero: \n" << A_H.nonZeros() << std::endl;
+
+// Eigen::VectorXd t4 = A_H*v;//task 4
+
+
+// task 5 :
+//   Eigen::VectorXd smoothed_img = A_H*w;
+// vector<unsigned char> out_smoothed(size);
+
+//   for(int i = 0; i<size; i++){
+//     out_smoothed[i] = static_cast<unsigned char>(smoothed_img[i]);
+    
+
+//   }
+
+  
+//   if(stbi_write_png("output_image_smoothed.png", width_noise, height_noise, channels_noise, out_smoothed.data() , width_noise * channels_noise) == 0){
+//     std::cerr << "Error: Could not save  image" << std::endl;
+
+//     return 1;
+
+//   }
+
+  // task 6:
+
+   // Creiamo una matrice sparsa A_H
+    SparseMatrix<double, RowMajor> A2(size, size);
+    std::vector<Triplet<double>> triplet_A2;
+    triplet_A2.reserve(size);
+
+    for (int i = 1; i < height - 1; i++) {
+        for (int j = 1; j < width - 1; j++) {
+            int pos = i * width + j;  // Posizione dell'elemento nella matrice sparsa
+
+            // Aggiungiamo il valore centrale (m_ij)
+            triplet_A2.push_back(Triplet<double>(pos, pos, 9));
+
+            // Aggiungiamo i vicini (sopra, sotto, sinistra, destra, e diagonali)
+            triplet_A2.push_back(Triplet<double>(pos, (i - 1) * width + j, -3));     // Sopra
+            triplet_A2.push_back(Triplet<double>(pos, (i + 1) * width + j, -1));     // Sotto
+            triplet_A2.push_back(Triplet<double>(pos, i * width + (j - 1), -1));     // Sinistra
+            triplet_A2.push_back(Triplet<double>(pos, i * width + (j + 1), -3));     // Destra
+
+           
+        }
+    }
+
+  A2.setFromTriplets(triplet_A2.begin(), triplet_A2.end());
+   // Stampiamo la matrice sparsa A_H
+    std::cout << "Matrice sparsa A2 non zero: \n" << A2.nonZeros() << std::endl;
+
+
+
+
+  // if(stbi_write_png("output_image.png", width, height, channels, image_data, width * channels) == 0){
+  //   std::cerr << "Error: Could not save  image" << std::endl;
+
+  //   return 1;
+
+  // }
+
+    // Libera la memoria
     stbi_image_free(image_data);
-    einstein_img = dark_einstein_img.unaryExpr([](const double val) -> unsigned char {
-      return static_cast<unsigned char>(val);
-    });
-
-    // Print Task 1
-    printf(
-        "\nTask 1. Load the image as an Eigen matrix with size m*n. "
-        "Each entry in the matrix corresponds to a pixel on the screen and takes a value somewhere "
-        "between 0 (black) and 255 (white). Report the size of the matrix.\n"
-        "Answer: %ld * %ld (rows * cols)\n", einstein_img.rows(), einstein_img.cols()
-    );
-
-
-    /**********
-     * Task 2 *
-     **********/
-    // Create a random device and a Mersenne Twister random number generator
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution d(-50, 50);
-
-    // Create result matrix
-    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> einstein_noise(height, width);
-    MatrixXd dark_noise_img(height, width);
-    int new_value = 0;
-
-    // Fill the matrices with image data
-    for (int i = 0; i < height; ++i) {
-        row_offset = i * width;
-        for (int j = 0; j < width; ++j) {
-            new_value = image_data[row_offset + j] + d(gen);
-            dark_noise_img(i, j) = new_value > 255.0 ? 255.0 : (new_value < 0 ? 0 : new_value);
-        }
-    }
-
-    // Use Eigen's unaryExpr to map the grayscale values
-    einstein_noise = dark_noise_img.unaryExpr([](const double val) -> unsigned char {
-      return static_cast<unsigned char>(val);
-    });
-
-    // Save the image using stbi_write_jpg
-    const char* noise_filename = "noise.png";
-    image_manipulation::save_image_to_file(noise_filename, width, height, 1, einstein_noise.data(), width);
-
-    // Print Task 2
-    printf(
-        "\nTask 2. Introduce a noise signal into the loaded image "
-        "by adding random fluctuations of color ranging between [-50, 50] to each pixel. "
-        "Export the resulting image in .png and upload it.\nAnswer: see the figure %s\n",
-        filesystem::absolute(noise_filename).c_str()
-    );
-
-
-    /**********
-     * Task 3 *
-     **********/
-    // Create original image as v vector
-    const long size_vector_einstein_img = dark_einstein_img.cols() * dark_einstein_img.rows();
-    // manually:
-    // for (int i = 0; i < height; ++i) {
-    //     for (int j = 0; j < width; ++j) {
-    //         v(i * width + j) = dark_einstein_img(i, j);
-    //     }
-    // }
-    VectorXd v(Map<VectorXd>(dark_einstein_img.data(), size_vector_einstein_img));
-    // Create noise image as w vector
-    const long size_vector_noise_img = dark_noise_img.cols() * dark_noise_img.rows();
-    // manually:
-    // for (int i = 0; i < height; ++i) {
-    //     for (int j = 0; j < width; ++j) {
-    //         w(i * width + j) = dark_noise_img(i, j);
-    //     }
-    // }
-    VectorXd w(Map<VectorXd>(dark_noise_img.data(), size_vector_noise_img));
-
-    // Verify that each vector has m*n components
-    if (v.size() != size_vector_einstein_img || w.size() != size_vector_noise_img) {
-        stringstream error;
-        error << "Convertion from matrix to vector failed.\n" <<
-            "Vector v size: " << v.size() << ", expected size: " << size_vector_einstein_img << '\n' <<
-            "Vector w size: " << w.size() << ", expected size: " << size_vector_noise_img << '\n';
-        throw runtime_error(error.str());
-    }
-
-    printf(
-        "\nTask 3. Reshape the original and noisy images as vectors v and w, respectively. "
-        "Verify that each vector has m n components. Report here the Euclidean norm of v.\nAnswer: %f", v.norm()
-    );
-
-
-    /**********
-     * Task 4 *
-     **********/
-    // Create smoothing filter H_av2
-    Matrix<float, 3, 3> H_av2 = (static_cast<float>(1) / static_cast<float>(9)) * Matrix<float, 3, 3>::Ones(3,3);
-
-    // Define a 2x2 matrix
-    Matrix2d original;
-    original << 1, 2,
-                3, 4;
-
-    // Define a 4x4 matrix and set it to zero
-    MatrixXd padded = MatrixXd::Zero(4, 4);
-
-    // Copy the original matrix into the top-left corner of the padded matrix
-    padded.block<2,2>(1,1) = original;
-
-
-    std::cout << "Padded matrix:\n" << padded << std::endl;
-
-    // SparseMatrix<double, 0, long int> padded_dark_einstein_img(dark_einstein_img.rows()+2, dark_einstein_img.cols()+2);
-    // padded_dark_einstein_img.block<static_cast<int>(dark_einstein_img.rows()), static_cast<int>(dark_einstein_img.cols())>(1,1) = dark_einstein_img.sparseView();
-
-    create_convolution_matrix(H_av2, dark_einstein_img);
-    zero_padding(dark_einstein_img);
-
-
-    // SparseMatrix<long, ColMajor, long> A1(size_vector_einstein_img, size_vector_einstein_img);
-    // auto A1 = createConvolutionMatrix(height, width);
-    // cout << "\nResult: " << A1.rows() << " * " << A1.cols() << " nnz: " << A1.nonZeros() << "\n";
-
-    // Create result matrix
-    // VectorXd resultVector = A1 * w;
-    // Matrix<unsigned char, Dynamic, Dynamic, RowMajor> A1w;
-    // MatrixXd A1w_dark(height, width), A1w_light(height, width);
-    //
-    // // Fill the matrices with image data
-    // for (int i = 0; i < height; ++i) {
-    //     for (int j = 0; j < width; ++j) {
-    //         const int index = (i * width + j) * channels;  // 1 channel (Greyscale)
-    //         A1w_dark(i, j) = static_cast<double>(image_data_mod[index]);
-    //         A1w_light(i, j) = static_cast<double>(image_data_mod[index]);
-    //     }
-    // }
-    //
-    // // Use Eigen's unaryExpr to map the grayscale values
-    // A1w = A1w_dark.unaryExpr([](const double val) -> unsigned char {
-    //   return static_cast<unsigned char>(val);
-    // });
-    //
-    // // Save the image using stbi_write_jpg
-    // const char* a1w_png = "a1w.png";
-    // save_image_to_file(a1w_png, width, height, 1, A1w.data(), width);
-
-    // cout << "Result: " << H_av2.colPivHouseholderQr().solve(einstein_img).nonZeros() << '\n';
-    // cout << "Result: " << (Map<VectorXd>(H_av2.data(), size_vector_einstein_img)).colPivHouseholderQr().solve(einstein_img).nonZeros() << '\n';
-
+    stbi_image_free(image_data_noise);
     return 0;
 }
-
-// auto createConvolutionMatrix(const int m, const int n) {
-//     const int size = m * n;
-//     SparseMatrix<long> A1(size, size);
-//     pmr::vector<Triplet<long>> tripletList;
-//     tripletList.reserve(size * 9);
-//
-//     auto kernel = (static_cast<float>(1) / static_cast<float>(9)) * MatrixXd::Ones(3,3);
-//
-//     for (int i = 0; i < m; ++i) {
-//         for (int j = 0; j < n; ++j) {
-//             int row = i * n + j;
-//             for (int ki = -1; ki <= 1; ++ki) {
-//                 for (int kj = -1; kj <= 1; ++kj) {
-//                     int ni = i + ki;
-//                     int nj = j + kj;
-//                     if (ni >= 0 && ni < m && nj >= 0 && nj < n) {
-//                         int col = ni * n + nj;
-//                         tripletList.push_back(Triplet<long>(row, col, kernel(ki + 1, kj + 1)));
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//
-//     A1.setFromTriplets(tripletList.begin(), tripletList.end());
-//     return A1;
-// }
