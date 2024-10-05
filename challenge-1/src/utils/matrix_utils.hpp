@@ -44,6 +44,13 @@ namespace matrix_utils {
     Eigen::SparseMatrix<double> create_convolution_matrix(
         const Eigen::Matrix<double, 3, 3> &filter, const Eigen::MatrixXd &matrix
     );
+
+    /**
+     * Save an eigen vector to a mtx file.
+     * @param filename filename where the mtx vector will be saved.
+     * @param vector the vector to be stored.
+     */
+    void save_market_vector(const char * filename, const Eigen::VectorXd& vector);
 }
 
 #endif

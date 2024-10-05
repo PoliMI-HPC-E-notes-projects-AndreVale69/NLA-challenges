@@ -51,7 +51,7 @@ and move it to your working directory.
    by a matrix $A_{2}$ having size $mn \times mn$. Report the number of non-zero entries in $A_{2}$.
    Is $A_{2}$ symmetric?
 
-   Answer: 435286, _is $A_{2}$ symmetric?_ false.
+   Answer: 435286, is $A_{2}$ symmetric? false.
 
 ```math
  H_{sh2} = \dfrac{1}{9}\begin{bmatrix}
@@ -67,6 +67,8 @@ and move it to your working directory.
    Answer: see the figure [sharpening.png](resources/sharpening.png).
 
    <img src="resources/sharpening.png">
+
+8. Export the Eigen matrix $A_{2}$ and vector $w$ in the .mtx format. Using a suitable iterative solver and preconditioner technique available in the [LIS library](https://www.mankier.com/3/lis) compute the approximate solution to the linear system $A_{2}x = w$ prescribing a tolerance of $10^{-9}$. Report here the iteration count and the final residual.
 
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=

@@ -8,6 +8,7 @@
 #include <thread>
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
+#include <unsupported/Eigen/SparseExtra>
 
 #include "utils/image_manipulation.hpp"
 #include "utils/matrix_utils.hpp"
@@ -264,10 +265,24 @@ int main() {
     sharpening_clione_save.join();
 
     printf(
-    "\nTask 7. Apply the previous sharpening filter to the original image by performing the matrix "
-    "vector multiplication A_{2}v. Export the resulting image.\nAnswer: see the figure %s\nAnd: %s\n",
-    filesystem::absolute(sharpening_filename).c_str(),
-    filesystem::absolute(clion_sharpening_filename).c_str()
+        "\nTask 7. Apply the previous sharpening filter to the original image by performing the matrix "
+        "vector multiplication A_{2}v. Export the resulting image.\nAnswer: see the figure %s\nAnd: %s\n",
+        filesystem::absolute(sharpening_filename).c_str(),
+        filesystem::absolute(clion_sharpening_filename).c_str()
+    );
+
+
+    /**********
+     * Task 8 *
+     **********/
+    saveMarket(A2, "../challenge-1/resources/A2.mtx");
+    // Export vector in .mtx format
+    save_market_vector("../challenge-1/resources/w.mtx", w);
+    printf(
+        "\nExport the Eigen matrix $A_{2}$ and vector $w$ in the .mtx format."
+        " Using a suitable iterative solver and preconditioner technique available in the LIS library compute "
+        "the approximate solution to the linear system A_{2}x = w prescribing a tolerance of 10^{-9}. "
+        "Report here the iteration count and the final residual.\nAnswer: "
     );
     return 0;
 }

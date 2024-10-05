@@ -196,4 +196,14 @@ namespace matrix_utils {
         return convolution_matrix;
     }
 
+    void save_market_vector(const char * filename, const Eigen::VectorXd& vector) {
+        const long n = vector.size();
+        FILE* out = fopen(filename,"w");
+        fprintf(out,"%%%%MatrixMarket vector coordinate real general\n");
+        fprintf(out,"%ld\n", n);
+        for (int i=0; i<n; i++) {
+            fprintf(out,"%d %f\n", i, vector(i));
+        }
+        fclose(out);
+    }
 }
