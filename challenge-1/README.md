@@ -51,7 +51,7 @@ and move it to your working directory.
    by a matrix $A_{2}$ having size $mn \times mn$. Report the number of non-zero entries in $A_{2}$.
    Is $A_{2}$ symmetric?
 
-   Answer: 87296, _is $A_{2}$ symmetric?_ true.
+   Answer: 435286, _is $A_{2}$ symmetric?_ false.
 
 ```math
  H_{sh2} = \dfrac{1}{9}\begin{bmatrix}
@@ -60,6 +60,13 @@ and move it to your working directory.
      0 & -1 & 0
  \end{bmatrix}
 ```
+
+7. Apply the previous sharpening filter to the original image by performing the matrix vector multiplication $A_{2}v$.
+   Export the resulting image.
+
+   Answer: see the figure [sharpening.png](resources/sharpening.png).
+
+   <img src="resources/sharpening.png">
 
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=

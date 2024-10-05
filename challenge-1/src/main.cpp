@@ -227,8 +227,47 @@ int main() {
     const bool A2_is_symmetric = A2.isApprox(A2.transpose());
     printf("\nTask 6. Write the convolution operation corresponding to the sharpening kernel H_{sh2} "
            "as a matrix vector multiplication by a matrix A_{2} having size mn * mn. "
-           "Report the number of non-zero entries in A_{2}. Is A_{2} symmetric?.\nAnswer: %ld, is A_{2} symmetric? %s\n",
+           "Report the number of non-zero entries in A_{2}. Is A_{2} symmetric?\nAnswer: %ld, is A_{2} symmetric? %s\n",
            A2.nonZeros(), A2_is_symmetric ? "true" : "false");
 
+
+    /**********
+     * Task 7 *
+     **********/
+    // Convolution using the matrix multiplication technique
+    VectorXd sharpening_convolution_matrix = A2*v;
+    static MatrixXd sharpening_matrix(height, width);
+    // Fill the matrices with image data
+    for (int i = 0; i < height; ++i) {
+        row_offset = i * width;
+        for (int j = 0; j < width; ++j) {
+            const double val = sharpening_convolution_matrix[row_offset + j];
+            sharpening_matrix(i, j) = val > 255.0 ? 255.0 : (val < 0 ? 0 : val);
+        }
+    }
+    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> sharpening_result(height, width);
+    sharpening_result = sharpening_matrix.unaryExpr([](const double val) -> unsigned char {
+      return static_cast<unsigned char>(val);
+    });
+    // thread feature to speedup I/O operations
+    const char* sharpening_filename = "sharpening.png";
+    const char* clion_sharpening_filename = "../challenge-1/resources/sharpening.png";
+    std::thread sharpening_save(
+        image_manipulation::save_image_to_file,
+        sharpening_filename, width, height, 1, sharpening_result.data(), width
+    );
+    std::thread sharpening_clione_save(
+        image_manipulation::save_image_to_file,
+        clion_sharpening_filename, width, height, 1, sharpening_result.data(), width
+    );
+    sharpening_save.join();
+    sharpening_clione_save.join();
+
+    printf(
+    "\nTask 7. Apply the previous sharpening filter to the original image by performing the matrix "
+    "vector multiplication A_{2}v. Export the resulting image.\nAnswer: see the figure %s\nAnd: %s\n",
+    filesystem::absolute(sharpening_filename).c_str(),
+    filesystem::absolute(clion_sharpening_filename).c_str()
+    );
     return 0;
 }
