@@ -174,6 +174,8 @@ int main() {
         image_manipulation::save_image_to_file,
         clion_noise_filename, width, height, 1, einstein_noise.data(), width
     );
+    noise_save.join();
+    noise_clion_save.join();
 
     printf(
         "\nTask 2. Introduce a noise signal into the loaded image "
@@ -190,12 +192,20 @@ int main() {
     // Create original image as v vector
     const long size_vector_einstein_img = dark_einstein_img.cols() * dark_einstein_img.rows();
     VectorXd v(size_vector_einstein_img);
+    try {
+        image_data = image_manipulation::load_image_from_file(
+            "../challenge-1/resources/Albert_Einstein_Head.jpg", width, height, channels
+        );
+    } catch ([[maybe_unused]] const std::runtime_error& e) {
+        image_data = image_manipulation::load_image_from_file(
+            "../resources/Albert_Einstein_Head.jpg", width, height, channels
+        );
+    }
     for (int i = 0; i < size_vector_einstein_img; ++i) {
         v(i) = static_cast<double>(image_data[i]);
     }
     // Load noise image and create noise image as w vector
-    noise_save.join();
-    noise_clion_save.join();
+
     try {
         noise_image_data = image_manipulation::load_image_from_file(
             "../challenge-1/resources/noise.png", width, height, channels

@@ -16,7 +16,6 @@ namespace image_manipulation {
         if (!image_data) {
             throw std::runtime_error("Could not load image");
         }
-        std::cout << "Image loaded: " << width << " x " << height << " with " << channels << " channels\n";
         stbi_image_free(image_data);
         return image_data;
     }

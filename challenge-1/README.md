@@ -23,7 +23,7 @@ and move it to your working directory.
 3. Reshape the original and noisy images as vectors $v$ and $w$, respectively. 
    Verify that each vector has $m \: n$ components. Report here the Euclidean norm of $v$.
 
-   Answer: $36492.540155$
+   Answer: $35576.621650$
 
 4. Write the convolution operation corresponding to the smoothing kernel $H_{av2}$ as a matrix vector multiplication 
    between a matrix $A_{1}$ having size $mn \times mn$ and the image vector.
