@@ -1,105 +1,20 @@
 // from https://github.com/nothings/stb/tree/master
 // #define STB_IMAGE_IMPLEMENTATION
-#include "external_libs/stb_image.h"
 // #define STB_IMAGE_WRITE_IMPLEMENTATION
-// #include "external_libs/stb_image_write.h"
 
 #include <filesystem>
 #include <iostream>
 #include <random>
+#include <thread>
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 
-#include "external_libs/stb_image_write.h"
 #include "utils/image_manipulation.hpp"
 #include "utils/matrix_utils.hpp"
 
 using namespace std;
 using namespace Eigen;
 using namespace matrix_utils;
-
-
-// auto createConvolutionMatrixv3(const int m, const int n) {
-//     const int size = m * n;
-//     SparseMatrix<double> A1(size, size);
-//     pmr::vector<Triplet<double>> tripletList;
-//     tripletList.reserve(size * 9);
-//
-//     auto kernel = (static_cast<float>(1) / static_cast<float>(9)) * MatrixXd::Ones(3,3);
-//
-//     for (int i = 0; i < m; ++i) {
-//         for (int j = 0; j < n; ++j) {
-//             int row = i * n + j;
-//             for (int ki = -1; ki <= 1; ++ki) {
-//                 for (int kj = -1; kj <= 1; ++kj) {
-//                     int ni = i + ki;
-//                     int nj = j + kj;
-//                     if (ni >= 0 && ni < m && nj >= 0 && nj < n) {
-//                         int col = ni * n + nj;
-//                         tripletList.emplace_back(row, col, kernel(ki + 1, kj + 1));
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//
-//     A1.setFromTriplets(tripletList.begin(), tripletList.end());
-//     return A1;
-// }
-
-
-// SparseMatrix<float> create_convolution_matrix(const Matrix<float, 3, 3> &filter, const MatrixXd &matrix) {
-//     const SparseMatrix<float> padded_matrix = zero_padding(matrix);
-//     const long filter_rows = filter.rows();
-//     const long filter_cols = filter.cols();
-//     const long matrix_rows = matrix.rows();
-//     const long matrix_cols = matrix.cols();
-//     const long padded_matrix_cols = padded_matrix.cols();
-//     // const long convolution_matrix_rows = matrix_cols * matrix_rows;
-//     const long convolution_matrix_rows = padded_matrix.size();
-//     const long number_of_zeros = matrix_cols - filter_cols;
-//     SparseMatrix<float> convolution_matrix(convolution_matrix_rows, convolution_matrix_rows);
-//     std::vector<Triplet<float>> triplet_list;
-//     // pre allocation optimization
-//     // size of the filter (because each row of the convolution matrix contains each entry of the filter)
-//     // times the rows of the convolution matrix to build
-//     // (then the convolution matrix will have a size of rows*cols * rows*cols)
-//     triplet_list.reserve(filter.size() * convolution_matrix_rows);
-//
-//
-//     int num_entries = 0;
-//     // the number of rows in the convolution matrix filled with the filter value
-//     // in the end, it should be equal to the rows of the convolution matrix
-//     int filled_rows = 0;
-//     // in each row of the convolution matrix,
-//     // the column where the filter values start to be placed is summed up to the offset.
-//     // trivially, it is the number of columns in the filled matrix times the number of rows already filled
-//     long offset = 0;
-//     long row_offset = 0;
-//     // row_done is the number of rows already filled
-//     // (in the convolution matrix) with respect to the original matrix.
-//     // the value is increased each time n rows are filled with filter values
-//     // (where n is the number of columns in the original matrix).
-//     // the for iteration continues until each row of the matrix is no longer convolutional.
-//     for (int row_done = 0; row_done < matrix_rows; ++row_done) {
-//         // for each element of the original matrix row,
-//         // create i rows in the convolution matrix, with each row filled with filter values
-//         for (int i = 0; i < matrix_cols; ++i, ++filled_rows) {
-//             row_offset = 0;
-//             for (int blocks = 0; blocks < filter_rows; ++blocks) {
-//                 for (num_entries = 0; num_entries < filter_cols; ++num_entries) {
-//                     triplet_list.emplace_back(filled_rows, i+offset+row_offset+num_entries, filter.coeff(blocks, num_entries));
-//                 }
-//                 row_offset += num_entries + number_of_zeros;
-//             }
-//         }
-//         offset += padded_matrix_cols;
-//     }
-//     // assert(filled_rows == convolution_matrix_rows);
-//     convolution_matrix.setFromTriplets(triplet_list.begin(), triplet_list.end());
-//
-//     return convolution_matrix;
-// }
 
 // TODO: tmp workaround to include the enum
 enum Filter: short {
@@ -112,7 +27,7 @@ enum Filter: short {
     laplacian_edge_lap
 };
 
-SparseMatrix<double> create_convolution_matrix_v2(const Matrix<double, 3, 3> &filter, const MatrixXd &matrix) {
+SparseMatrix<double> create_convolution_matrix(const Matrix<double, 3, 3> &filter, const MatrixXd &matrix) {
     bool almost_one_col_valid = false;
     int rows_filled = 0, rows_offset = 0, offset_filter = 0,
         row_lower_bound_neighbour = 0, row_upper_bound_neighbour = 0,
@@ -163,6 +78,10 @@ SparseMatrix<double> create_convolution_matrix_v2(const Matrix<double, 3, 3> &fi
                     // use some available memory to store zeros;
                     // this should increase speed, but is it really necessary?
                     if (const auto filter_value = filter_array[offset_filter]; filter_value > 0.0) {
+                        if (row >= 2) {
+                            triplet_list.emplace_back(rows_filled, j_col+rows_offset+(row-1)*matrix_cols, filter_value);
+                            continue;
+                        }
                         triplet_list.emplace_back(rows_filled, j_col+rows_offset, filter_value);
                     }
                 }
@@ -184,12 +103,18 @@ int main() {
      **********/
     // Load image from file
     int width = 0, height = 0, channels = 0, row_offset = 0;
-    unsigned char* image_data = image_manipulation::load_image_from_file(width, height, channels);
+    unsigned char* image_data, * noise_image_data;
+    try {
+        image_data = image_manipulation::load_image_from_file(
+            "../challenge-1/resources/Albert_Einstein_Head.jpg", width, height, channels
+        );
+    } catch ([[maybe_unused]] const std::runtime_error& e) {
+        image_data = image_manipulation::load_image_from_file(
+            "../resources/Albert_Einstein_Head.jpg", width, height, channels
+        );
+    }
 
-    // Get matrix from image
     Matrix<unsigned char, Dynamic, Dynamic, RowMajor> einstein_img(height, width);
-
-    // Prepare Eigen matrix
     static MatrixXd dark_einstein_img(height, width);
     // Fill the matrices with image data
     for (int i = 0; i < height; ++i) {
@@ -198,12 +123,10 @@ int main() {
             dark_einstein_img(i, j) = static_cast<double>(image_data[row_offset + j]);
         }
     }
-
     einstein_img = dark_einstein_img.unaryExpr([](const double val) -> unsigned char {
       return static_cast<unsigned char>(val);
     });
 
-    // Print Task 1
     printf(
         "\nTask 1. Load the image as an Eigen matrix with size m*n. "
         "Each entry in the matrix corresponds to a pixel on the screen and takes a value somewhere "
@@ -241,14 +164,23 @@ int main() {
 
     // Save the image using stbi_write_jpg
     const char* noise_filename = "noise.png";
-    image_manipulation::save_image_to_file(noise_filename, width, height, 1, einstein_noise.data(), width);
+    const char* clion_noise_filename = "../challenge-1/resources/noise.png";
+    // thread feature to speedup I/O operations
+    std::thread noise_save(
+        image_manipulation::save_image_to_file,
+        noise_filename, width, height, 1, einstein_noise.data(), width
+    );
+    std::thread noise_clion_save(
+        image_manipulation::save_image_to_file,
+        clion_noise_filename, width, height, 1, einstein_noise.data(), width
+    );
 
-    // Print Task 2
     printf(
         "\nTask 2. Introduce a noise signal into the loaded image "
         "by adding random fluctuations of color ranging between [-50, 50] to each pixel. "
-        "Export the resulting image in .png and upload it.\nAnswer: see the figure %s\n",
-        filesystem::absolute(noise_filename).c_str()
+        "Export the resulting image in .png and upload it.\nAnswer: see the figure %s\nAnd: %s\n",
+        filesystem::absolute(noise_filename).c_str(),
+        filesystem::absolute(clion_noise_filename).c_str()
     );
 
 
@@ -257,22 +189,27 @@ int main() {
      **********/
     // Create original image as v vector
     const long size_vector_einstein_img = dark_einstein_img.cols() * dark_einstein_img.rows();
-    // manually:
-    // for (int i = 0; i < height; ++i) {
-    //     for (int j = 0; j < width; ++j) {
-    //         v(i * width + j) = dark_einstein_img(i, j);
-    //     }
-    // }
-    VectorXd v(Map<VectorXd>(dark_einstein_img.data(), size_vector_einstein_img));
-    // Create noise image as w vector
+    VectorXd v(size_vector_einstein_img);
+    for (int i = 0; i < size_vector_einstein_img; ++i) {
+        v(i) = static_cast<double>(image_data[i]);
+    }
+    // Load noise image and create noise image as w vector
+    noise_save.join();
+    noise_clion_save.join();
+    try {
+        noise_image_data = image_manipulation::load_image_from_file(
+            "../challenge-1/resources/noise.png", width, height, channels
+        );
+    } catch ([[maybe_unused]] const std::runtime_error& e) {
+        noise_image_data = image_manipulation::load_image_from_file(
+            "../resources/noise.png", width, height, channels
+        );
+    }
     const long size_vector_noise_img = dark_noise_img.cols() * dark_noise_img.rows();
-    // manually:
-    // for (int i = 0; i < height; ++i) {
-    //     for (int j = 0; j < width; ++j) {
-    //         w(i * width + j) = dark_noise_img(i, j);
-    //     }
-    // }
-    VectorXd w(Map<VectorXd>(dark_noise_img.data(), size_vector_noise_img));
+    VectorXd w(size_vector_noise_img);
+    for (int i = 0; i < size_vector_noise_img; ++i) {
+        w(i) = static_cast<double>(noise_image_data[i]);
+    }
 
     // Verify that each vector has m*n components
     if (v.size() != size_vector_einstein_img || w.size() != size_vector_noise_img) {
@@ -294,75 +231,50 @@ int main() {
      **********/
     // Create smoothing filter H_av2
     MatrixXd H_av2 = create_filter(static_cast<matrix_utils::Filter>(smoothing_av2));
-
     // Create convolution matrix
-    MatrixXd debug(5, 4);
-    int counter = 1;
-    for (int i = 0; i < 5; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            counter++;
-            debug(i, j) = static_cast<double>(counter);
-        }
-    }
-    // SparseMatrix<double> A2 = create_convolution_matrix_v2(H_av2, dark_einstein_img);
-    SparseMatrix<double> A2 = create_convolution_matrix_v2(H_av2, debug);
-
-    cout << "\nTask 4.Write the convolution operation corresponding to the smoothing kernel H_{av2} "
+    SparseMatrix<double> A1 = create_convolution_matrix(H_av2, dark_einstein_img);
+    printf("\nTask 4.Write the convolution operation corresponding to the smoothing kernel H_{av2} "
            "as a matrix vector multiplication between a matrix A_{1} having size mn times mn and the image vector."
-           "Report the number of non-zero entries in A_{1}.\nAnswer: \n" << A2.toDense();
-    // printf("\nTask 4.Write the convolution operation corresponding to the smoothing kernel H_{av2} "
-    //        "as a matrix vector multiplication between a matrix A_{1} having size mn times mn and the image vector."
-    //        "Report the number of non-zero entries in A_{1}.\nAnswer: %ld\n", A2.toDense());
+           "Report the number of non-zero entries in A_{1}.\nAnswer: %ld\n", A1.nonZeros());
 
 
     /**********
      * Task 5 *
      **********/
+    // Convolution using the matrix multiplication technique
+    VectorXd convolution_multiplication = A1*w;
+    static MatrixXd smoothing_matrix(height, width);
+    // Fill the matrices with image data
+    for (int i = 0; i < height; ++i) {
+        row_offset = i * width;
+        for (int j = 0; j < width; ++j) {
+            smoothing_matrix(i, j) = convolution_multiplication[row_offset + j];
+        }
+    }
+    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> result(height, width);
+    result = smoothing_matrix.unaryExpr([](const double val) -> unsigned char {
+      return static_cast<unsigned char>(val);
+    });
+    // thread feature to speedup I/O operations
+    const char* smoothing_filename = "smoothing.png";
+    const char* clion_smoothing_filename = "../challenge-1/resources/smoothing.png";
+    std::thread smoothing_save(
+        image_manipulation::save_image_to_file,
+        smoothing_filename, width, height, 1, result.data(), width
+    );
+    std::thread smoothing_clion_save(
+        image_manipulation::save_image_to_file,
+        clion_smoothing_filename, width, height, 1, result.data(), width
+    );
+    smoothing_save.join();
+    smoothing_clion_save.join();
 
-    // task 5 :
-    // VectorXd smoothed_img = A2*w;
-    // int size = height * width;
-    // // vector<unsigned char> out_smoothed(size);
-    //
-    // // for(int i = 0; i<size; ++i){
-    // //   out_smoothed[i] = static_cast<unsigned char>(smoothed_img[i]);
-    // // }
-    //
-    // Matrix<unsigned char, Dynamic, Dynamic, RowMajor> out_smoothed = smoothed_img.unaryExpr([](const double val) -> unsigned char {
-    //   return static_cast<unsigned char>(val);
-    // });
-    //
-    // image_manipulation::save_image_to_file("smoothing.png", width, height, 1, out_smoothed.data(), width);
-
-    // Product<SparseMatrix<double>, VectorXd> res = A2 * w;
-    // MatrixXd einstein_smoothing(height, width);
-    // vector<Triplet<double>> triplets;
-    // triplets.reserve(A2.nonZeros());
-    //
-    // row_offset = 0;
-    // for (int i = 0; i < height; ++i) {
-    //     for (int j = 0; j < width; ++j) {
-    //         triplets.emplace_back(i, j, res[row_offset+j]);
-    //         // einstein_smoothing(i, j) = res.operator()(row_offset+j);// res.coeff(row_offset+j);
-    //     }
-    //     row_offset += width;
-    // }
-    // SparseMatrix<double> prova;
-    // prova.setFromTriplets(triplets.begin(), triplets.end());
-    //
-    // Matrix<unsigned char, Dynamic, Dynamic, RowMajor> convolution_try = prova.unaryExpr([](const double val) -> unsigned char {
-    //   return static_cast<unsigned char>(val);
-    // });
-    //
-    // // Save the image using stbi_write_jpg
-    // const char* filename = "convolution_try.png";
-    // image_manipulation::save_image_to_file(filename, width, height, 1, convolution_try.data(), width);
-    //
-    // // Print Task 5
-    // printf(
-    //     "\nAnswer: see the figure %s\n",
-    //     filesystem::absolute(filename).c_str()
-    // );
+    printf(
+    "\nTask 5. Apply the previous smoothing filter to the noisy image by performing "
+    "the matrix vector multiplication A_{1}w Export the resulting image.\nAnswer: see the figure %s\nAnd: %s\n",
+    filesystem::absolute(smoothing_filename).c_str(),
+    filesystem::absolute(clion_smoothing_filename).c_str()
+    );
 
     return 0;
 }

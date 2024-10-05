@@ -4,13 +4,14 @@
 namespace image_manipulation {
     /**
      * Load Einstein figure from file.
+     * @param filename filename.
      * @param width width of the figure.
      * @param height height of the figure.
      * @param channels channels of the figure.
      * @return The 'unsigned char *' which points to the pixel data,
      * or NULL on an allocation failure or if the image is corrupt or invalid.
      */
-    unsigned char *load_image_from_file(int &width, int &height, int &channels);
+    unsigned char *load_image_from_file(char const *filename, int &width, int &height, int &channels);
 
     /**
      * Save an image as a file, the extension should be png.

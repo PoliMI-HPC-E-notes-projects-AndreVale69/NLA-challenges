@@ -4,6 +4,8 @@ project(nla_challenges)
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_compile_options(-pthread)
+
 # mk
 include_directories(
         /u/sw/toolchains/gcc-glibc/11.2.0/base/include
