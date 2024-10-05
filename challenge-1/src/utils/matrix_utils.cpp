@@ -168,10 +168,10 @@ namespace matrix_utils {
                         }
                         // update the flag, the rows_offset will be updated
                         almost_one_col_valid = true;
-                        // optimization to avoid garbage (zero) values; add iff > 0;
+                        // optimization to avoid garbage (zero) values; add iff != 0;
                         // use some available memory to store zeros;
                         // this should increase speed, but is it really necessary?
-                        if (const auto filter_value = filter_array[offset_filter]; filter_value > 0.0) {
+                        if (const auto filter_value = filter_array[offset_filter]; filter_value != 0.) {
                             // if there is almost one row to skip, use the upper_entries_to_skip
                             if (row >= 2) {
                                 triplet_list.emplace_back(
