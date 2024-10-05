@@ -44,55 +44,104 @@ SparseMatrix<float> zero_padding(const MatrixXd &matrix) {
     return zero_padding_matrix;
 }
 
-SparseMatrix<float> create_convolution_matrix(const Matrix<float, 3, 3> &filter, const MatrixXd &matrix) {
-    const SparseMatrix<float> padded_matrix = zero_padding(matrix);
-    const long filter_rows = filter.rows();
-    const long filter_cols = filter.cols();
-    const long matrix_rows = matrix.rows();
-    const long matrix_cols = matrix.cols();
-    const long padded_matrix_cols = padded_matrix.cols();
-    const long convolution_matrix_rows = matrix_cols * matrix_rows;
-    const long number_of_zeros = matrix_cols - filter_cols;
-    SparseMatrix<float> convolution_matrix(convolution_matrix_rows, convolution_matrix_rows);
-    std::vector<Triplet<float>> triplet_list;
-    // pre allocation optimization
-    // size of the filter (because each row of the convolution matrix contains each entry of the filter)
-    // times the rows of the convolution matrix to build
-    // (then the convolution matrix will have a size of rows*cols * rows*cols)
-    triplet_list.reserve(filter.size() * convolution_matrix_rows);
+// SparseMatrix<float> create_convolution_matrix(const Matrix<float, 3, 3> &filter, const MatrixXd &matrix) {
+//     const SparseMatrix<float> padded_matrix = zero_padding(matrix);
+//     const long filter_rows = filter.rows();
+//     const long filter_cols = filter.cols();
+//     const long matrix_rows = matrix.rows();
+//     const long matrix_cols = matrix.cols();
+//     const long padded_matrix_cols = padded_matrix.cols();
+//     // const long convolution_matrix_rows = matrix_cols * matrix_rows;
+//     const long convolution_matrix_rows = padded_matrix.size();
+//     const long number_of_zeros = matrix_cols - filter_cols;
+//     SparseMatrix<float> convolution_matrix(convolution_matrix_rows, convolution_matrix_rows);
+//     std::vector<Triplet<float>> triplet_list;
+//     // pre allocation optimization
+//     // size of the filter (because each row of the convolution matrix contains each entry of the filter)
+//     // times the rows of the convolution matrix to build
+//     // (then the convolution matrix will have a size of rows*cols * rows*cols)
+//     triplet_list.reserve(filter.size() * convolution_matrix_rows);
+//
+//
+//     int num_entries = 0;
+//     // the number of rows in the convolution matrix filled with the filter value
+//     // in the end, it should be equal to the rows of the convolution matrix
+//     int filled_rows = 0;
+//     // in each row of the convolution matrix,
+//     // the column where the filter values start to be placed is summed up to the offset.
+//     // trivially, it is the number of columns in the filled matrix times the number of rows already filled
+//     long offset = 0;
+//     long row_offset = 0;
+//     // row_done is the number of rows already filled
+//     // (in the convolution matrix) with respect to the original matrix.
+//     // the value is increased each time n rows are filled with filter values
+//     // (where n is the number of columns in the original matrix).
+//     // the for iteration continues until each row of the matrix is no longer convolutional.
+//     for (int row_done = 0; row_done < matrix_rows; ++row_done) {
+//         // for each element of the original matrix row,
+//         // create i rows in the convolution matrix, with each row filled with filter values
+//         for (int i = 0; i < matrix_cols; ++i, ++filled_rows) {
+//             row_offset = 0;
+//             for (int blocks = 0; blocks < filter_rows; ++blocks) {
+//                 for (num_entries = 0; num_entries < filter_cols; ++num_entries) {
+//                     triplet_list.emplace_back(filled_rows, i+offset+row_offset+num_entries, filter.coeff(blocks, num_entries));
+//                 }
+//                 row_offset += num_entries + number_of_zeros;
+//             }
+//         }
+//         offset += padded_matrix_cols;
+//     }
+//     // assert(filled_rows == convolution_matrix_rows);
+//     // TODO: fix index!
+//     convolution_matrix.setFromTriplets(triplet_list.begin(), triplet_list.end());
+//
+//     return convolution_matrix;
+// }
 
+bool isIndexOutOfBounds(const MatrixXd& matrix, const int row, const int col) {
+    return row < 0 || row >= matrix.rows() || col < 0 || col >= matrix.cols();
+}
 
-    int num_entries = 0;
-    // the number of rows in the convolution matrix filled with the filter value
-    // in the end, it should be equal to the rows of the convolution matrix
-    int filled_rows = 0;
-    // in each row of the convolution matrix,
-    // the column where the filter values start to be placed is summed up to the offset.
-    // trivially, it is the number of columns in the filled matrix times the number of rows already filled
-    long offset = 0;
-    long row_offset = 0;
-    // row_done is the number of rows already filled
-    // (in the convolution matrix) with respect to the original matrix.
-    // the value is increased each time n rows are filled with filter values
-    // (where n is the number of columns in the original matrix).
-    // the for iteration continues until each row of the matrix is no longer convolutional.
-    for (int row_done = 0; row_done < matrix_rows; ++row_done) {
-        // for each element of the original matrix row,
-        // create i rows in the convolution matrix, with each row filled with filter values
-        for (int i = 0; i < matrix_cols; ++i, ++filled_rows) {
-            row_offset = 0;
-            for (int blocks = 0; blocks < filter_rows; ++blocks) {
-                for (num_entries = 0; num_entries < filter_cols; ++num_entries) {
-                    triplet_list.emplace_back(filled_rows, i+offset+row_offset+num_entries, filter.coeff(blocks, num_entries));
+SparseMatrix<double> create_convolution_matrix_v2(const Matrix<float, 3, 3> &filter, const MatrixXd &matrix) {
+    const int matrix_rows = static_cast<int>(matrix.rows());
+    const int matrix_cols = static_cast<int>(matrix.cols());
+    SparseMatrix<double> convolution_matrix(matrix.size(), matrix.size());
+    std::vector<Triplet<double>> triplet_list;
+    triplet_list.reserve(filter.size() * matrix_rows * matrix_cols);
+
+    int rows_filled = 0;
+    int rows_offset = 0;
+    int offset_filter = 0;
+    int j_col = 0;
+    bool almost_one_col_valid = false;
+    const auto filter_array = filter.array();
+
+    for (int row = 0; row < matrix_rows; ++row) {
+        // lower_row_offset = row-1;
+        // upper_row_offset = row+1;
+        for (int col = 0; col < matrix_cols; ++col, ++rows_filled) {
+            offset_filter = 0;
+            rows_offset = 0;
+            for (int i_row = row-1; i_row < row+1+1; ++i_row) {
+                almost_one_col_valid = false;
+                for (j_col = col-1; j_col < col+1+1; ++j_col, ++offset_filter) {
+                    if (isIndexOutOfBounds(matrix, i_row, j_col)) {
+                        continue;
+                    }
+                    almost_one_col_valid = true;
+                    // optimization to avoid garbage values; add iff > 0
+                    if (const auto filter_value = filter_array.operator()(offset_filter); filter_value > 0.0) {
+                        triplet_list.emplace_back(rows_filled, j_col+rows_offset, filter_value);
+                    }
                 }
-                row_offset += num_entries + number_of_zeros;
+                if (almost_one_col_valid) {
+                    rows_offset += matrix_cols;
+                }
             }
         }
-        offset += padded_matrix_cols;
     }
-    assert(filled_rows == convolution_matrix_rows);
-    // TODO: fix index!
     convolution_matrix.setFromTriplets(triplet_list.begin(), triplet_list.end());
+
     return convolution_matrix;
 }
 
@@ -217,9 +266,26 @@ int main() {
     // SparseMatrix<double, 0, long int> padded_dark_einstein_img(dark_einstein_img.rows()+2, dark_einstein_img.cols()+2);
     // padded_dark_einstein_img.block<static_cast<int>(dark_einstein_img.rows()), static_cast<int>(dark_einstein_img.cols())>(1,1) = dark_einstein_img.sparseView();
 
-    SparseMatrix<float> convolution_matrix = create_convolution_matrix(H_av2, dark_einstein_img);
+    SparseMatrix<double> convolution_matrix = create_convolution_matrix_v2(H_av2, dark_einstein_img);
+    // SparseMatrix<float> convolution_matrix = create_convolution_matrix(H_av2, dark_einstein_img);
 
     printf("\nNNZ: %ld\n", convolution_matrix.nonZeros());
+
+    auto res = convolution_matrix * w;
+
+    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> prova = res.unaryExpr([](const double val) -> unsigned char {
+      return static_cast<unsigned char>(val);
+    });
+
+    // Save the image using stbi_write_jpg
+    const char* filename = "prova.png";
+    image_manipulation::save_image_to_file(filename, width, height, 1, prova.data(), width);
+
+    // Print Task 2
+    printf(
+        "\nAnswer: see the figure %s\n",
+        filesystem::absolute(filename).c_str()
+    );
 
     // SparseMatrix<long, ColMajor, long> A1(size_vector_einstein_img, size_vector_einstein_img);
     // auto A1 = createConvolutionMatrix(height, width);
