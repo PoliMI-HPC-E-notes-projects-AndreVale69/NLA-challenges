@@ -453,5 +453,43 @@ int main() {
            "\nAnswer: see the figure %s\nAnd: %s\n",
            filesystem::absolute(edge_detection_filename).c_str(),
            filesystem::absolute(clion_edge_detection_filename).c_str());
+
+
+    /***********
+     * Task 12 *
+     ***********/
+    // Create identity matrix
+    SparseMatrix<double> identity(A3.rows(), A3.cols());
+    identity.setIdentity();
+    SparseMatrix<double> I_A3 = identity + A3;
+    SparseMatrix<double> y;
+    // Set parameters for solver
+    // Convergence tolerance
+    double tol = 1.e-10;
+    // Maximum iterations
+    int maxit = 100;
+    BiCGSTAB<SparseMatrix<double>> bi_cgstab;
+    bi_cgstab.setMaxIterations(maxit);
+    bi_cgstab.setTolerance(tol);
+    bi_cgstab.compute(I_A3);
+
+    // Convert from dense to sparse
+    SparseMatrix<double> w_sparse_vector(size_vector_noise_img, 1);
+    vector<Triplet<double>> triplets;
+    triplets.reserve(size_vector_einstein_img);
+    for (int i = 0; i < size_vector_noise_img; ++i) {
+        triplets.emplace_back(i, 0, static_cast<double>(noise_image_data[i]));
+    }
+    w_sparse_vector.setFromTriplets(triplets.begin(), triplets.end());
+
+    // Solve
+    y = bi_cgstab.solve(w_sparse_vector);
+
+    printf("\nTask 12. Using a suitable iterative solver available in the Eigen library compute the approximate solution"
+    "of the linear system (I+A_{3})y = w, where I denotes the identity matrix, prescribing a tolerance of 10^{-10}."
+    "Report here the iteration count and the final residual."
+    "Answer: the iteration count is %ld and the final residual is ", bi_cgstab.iterations());
+    cout << bi_cgstab.error() << " (using BiCGSTAB).\n";
+
     return 0;
 }
