@@ -2,10 +2,19 @@
 // #define STB_IMAGE_IMPLEMENTATION
 // #define STB_IMAGE_WRITE_IMPLEMENTATION
 
+#ifdef __CYGWIN__
+    std::cout << "The script has been tested on one of the Debian distributions, we don't guarantee that it will work."
+#endif
+#ifdef __APPLE__
+    std::cout << "The script has been tested on one of the Debian distributions, we don't guarantee that it will work."
+#endif
+
+
 #include <filesystem>
 #include <iostream>
 #include <random>
 #include <thread>
+#include <cstdlib>
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/SparseExtra>
@@ -275,14 +284,46 @@ int main() {
     /**********
      * Task 8 *
      **********/
+    // Export
     saveMarket(A2, "../challenge-1/resources/A2.mtx");
-    // Export vector in .mtx format
     save_market_vector("../challenge-1/resources/w.mtx", w);
+
+    // Run LIS
+    if (system("./../challenge-1/resources/run_lis.sh") != 0) {
+        if (system("./../resources/run_lis.sh") != 0) {
+            throw runtime_error("Error loading LIS modules");
+        }
+    }
+
+    // Open results
+    ifstream inputFile("../challenge-1/resources/result.txt");
+    if (!inputFile.is_open()) {
+        inputFile.open("../resources/result.txt");
+        if (!inputFile.is_open()) {
+            cerr << "Error opening the file!" << endl;
+            return 1;
+        }
+    }
+
+    // Save results
+    string n_iterations;
+    string final_residual;
+    string line;
+    for (int i = 0; getline(inputFile, line); ++i) {
+        if (i == 12) {
+            n_iterations = line.erase(0, line.find_first_of("=")+2);
+        } else if (i == 19) {
+            final_residual = line.erase(0, line.find_first_of("=")+2);
+        }
+    }
+    inputFile.close();
+
     printf(
-        "\nExport the Eigen matrix $A_{2}$ and vector $w$ in the .mtx format."
+        "\nTask 8. Export the Eigen matrix $A_{2}$ and vector $w$ in the .mtx format."
         " Using a suitable iterative solver and preconditioner technique available in the LIS library compute "
         "the approximate solution to the linear system A_{2}x = w prescribing a tolerance of 10^{-9}. "
-        "Report here the iteration count and the final residual.\nAnswer: "
+        "Report here the iteration count and the final residual."
+        "\nAnswer: number of iterations %s, number of final residual %s", n_iterations.c_str(), final_residual.c_str()
     );
     return 0;
 }

@@ -68,7 +68,12 @@ and move it to your working directory.
 
    <img src="resources/sharpening.png">
 
-8. Export the Eigen matrix $A_{2}$ and vector $w$ in the .mtx format. Using a suitable iterative solver and preconditioner technique available in the [LIS library](https://www.mankier.com/3/lis) compute the approximate solution to the linear system $A_{2}x = w$ prescribing a tolerance of $10^{-9}$. Report here the iteration count and the final residual.
+8. Export the Eigen matrix $A_{2}$ and vector $w$ in the `.mtx` format. 
+   Using a suitable iterative solver and preconditioner technique available in the [LIS library](https://www.mankier.com/3/lis) 
+   compute the approximate solution to the linear system $A_{2}x = w$ prescribing a tolerance of $10^{-9}$. 
+   Report here the iteration count and the final residual.
+
+   Answer: number of iterations $7$, number of final residual $\approx 6.227944e\text{-}12$.
 
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=

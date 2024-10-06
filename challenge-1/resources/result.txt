@@ -1,0 +1,21 @@
+
+number of processes = 1
+matrix size = 87296 x 87296 (435286 nonzero entries)
+
+initial vector x      : all components set to 0
+precision             : double
+linear solver         : CGS
+preconditioner        : Crout ILU
+convergence condition : ||b-Ax||_2 <= 1.0e-09 * ||b-Ax_0||_2
+matrix storage format : CSR
+linear solver status  : normal end
+
+CGS: number of iterations = 7
+CGS:   double             = 7
+CGS:   quad               = 0
+CGS: elapsed time         = 4.073120e-02 sec.
+CGS:   preconditioner     = 2.753749e-02 sec.
+CGS:     matrix creation  = 2.810000e-07 sec.
+CGS:   linear solver      = 1.319371e-02 sec.
+CGS: relative residual    = 6.227944e-12
+
