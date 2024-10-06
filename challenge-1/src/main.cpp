@@ -306,12 +306,12 @@ int main() {
         image_manipulation::save_image_to_file,
         sharpening_filename, width, height, 1, sharpening_result.data(), width
     );
-    std::thread sharpening_clione_save(
+    std::thread sharpening_clion_save(
         image_manipulation::save_image_to_file,
         clion_sharpening_filename, width, height, 1, sharpening_result.data(), width
     );
     sharpening_save.join();
-    sharpening_clione_save.join();
+    sharpening_clion_save.join();
 
     printf(
         "\nTask 7. Apply the previous sharpening filter to the original image by performing the matrix "
@@ -413,8 +413,45 @@ int main() {
     SparseMatrix<double> A3 = create_convolution_matrix(H_lap, dark_einstein_img);
     printf("\nTask 10. Write the convolution operation corresponding to the detection kernel H_{lap} "
            "as a matrix vector multiplication by a matrix A_{3} having size mn times mn. "
-           "Is matrix A_{3} symmetric?\nAnswer: %s", is_symmetric(A3) ? "true" : "false");
+           "Is matrix A_{3} symmetric?\nAnswer: %s\n", is_symmetric(A3) ? "true" : "false");
+
+
+    /***********
+     * Task 11 *
+     ***********/
+    // Convolution using the matrix multiplication technique
+    VectorXd edge_detection_convolution_matrix = A3*v;
+    static MatrixXd edge_detection_matrix(height, width);
+    // Fill the matrices with image data
+    for (int i = 0; i < height; ++i) {
+        row_offset = i * width;
+        for (int j = 0; j < width; ++j) {
+            const double val = edge_detection_convolution_matrix[row_offset + j];
+            edge_detection_matrix(i, j) = val > 255.0 ? 255.0 : (val < 0 ? 0 : val);
+        }
+    }
+    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> edge_detection_result(height, width);
+    edge_detection_result = edge_detection_matrix.unaryExpr([](const double val) -> unsigned char {
+      return static_cast<unsigned char>(val);
+    });
+    // thread feature to speedup I/O operations
+    const char* edge_detection_filename = "edge_detection.png";
+    const char* clion_edge_detection_filename = "../challenge-1/resources/edge_detection.png";
+    std::thread edge_detection_save(
+        image_manipulation::save_image_to_file,
+        edge_detection_filename, width, height, 1, edge_detection_result.data(), width
+    );
+    std::thread edge_detection_clion_save(
+        image_manipulation::save_image_to_file,
+        clion_edge_detection_filename, width, height, 1, edge_detection_result.data(), width
+    );
+    edge_detection_save.join();
+    edge_detection_clion_save.join();
+
+    printf("\nTask 11. Apply the previous edge detection filter to the original image by performing "
+           "the matrix vector multiplication A_{3}v. Export and upload the resulting image."
+           "\nAnswer: see the figure %s\nAnd: %s\n",
+           filesystem::absolute(edge_detection_filename).c_str(),
+           filesystem::absolute(clion_edge_detection_filename).c_str());
     return 0;
 }
-
-

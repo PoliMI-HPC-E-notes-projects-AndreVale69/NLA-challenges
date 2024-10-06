@@ -95,4 +95,11 @@ and move it to your working directory.
  \end{bmatrix}
 ```
 
+11. Apply the previous edge detection filter to the original image by performing the matrix vector multiplication 
+    $A_{3}v$. Export and upload the resulting image.
+
+   Answer: see the figure [edge_detection.png](resources/edge_detection.png).
+
+   <img src="resources/edge_detection.png">
+
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
