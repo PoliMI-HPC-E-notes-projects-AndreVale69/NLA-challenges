@@ -98,9 +98,9 @@ and move it to your working directory.
 11. Apply the previous edge detection filter to the original image by performing the matrix vector multiplication 
     $A_{3}v$. Export and upload the resulting image.
 
-   Answer: see the figure [edge_detection.png](resources/edge_detection.png).
+    Answer: see the figure [edge_detection.png](resources/edge_detection.png).
 
-   <img src="resources/edge_detection.png">
+    <img src="resources/edge_detection.png">
 
 12. Using a suitable iterative solver available in the Eigen library compute the approximate solution 
     of the linear system $(I+A_{3})y = w$, where $I$ denotes the identity matrix, prescribing a tolerance of $10^{-10}$.
