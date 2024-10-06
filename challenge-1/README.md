@@ -82,4 +82,17 @@ and move it to your working directory.
 
    <img src="resources/solution.png">
 
+10. Write the convolution operation corresponding to the detection kernel $H_{lap}$ as a matrix vector multiplication 
+    by a matrix $A_{3}$ having size $mn \times mn$. Is matrix $A_{3}$ symmetric?
+
+    Answer: yes.
+
+```math
+ H_{lap} = \begin{bmatrix}
+     0 & -1 & 0 \\
+     -1 & 4 & -1 \\
+     0 & -1 & 0
+ \end{bmatrix}
+```
+
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=

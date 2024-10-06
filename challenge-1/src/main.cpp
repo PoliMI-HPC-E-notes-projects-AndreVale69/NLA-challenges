@@ -275,11 +275,10 @@ int main() {
     // Create convolution matrix
     SparseMatrix<double> A2 = create_convolution_matrix(H_sh2, dark_einstein_img);
     // According to the symmetric definition of a matrix: A = A^{T} iff A is symmetric
-    const bool A2_is_symmetric = A2.isApprox(A2.transpose());
     printf("\nTask 6. Write the convolution operation corresponding to the sharpening kernel H_{sh2} "
            "as a matrix vector multiplication by a matrix A_{2} having size mn * mn. "
            "Report the number of non-zero entries in A_{2}. Is A_{2} symmetric?\nAnswer: %ld, is A_{2} symmetric? %s\n",
-           A2.nonZeros(), A2_is_symmetric ? "true" : "false");
+           A2.nonZeros(), is_symmetric(A2) ? "true" : "false");
 
 
     /**********
@@ -364,7 +363,7 @@ int main() {
         " Using a suitable iterative solver and preconditioner technique available in the LIS library compute "
         "the approximate solution to the linear system A_{2}x = w prescribing a tolerance of 10^{-9}. "
         "Report here the iteration count and the final residual."
-        "\nAnswer: number of iterations %s, number of final residual %s", n_iterations.c_str(), final_residual.c_str()
+        "\nAnswer: number of iterations %s, number of final residual %s\n", n_iterations.c_str(), final_residual.c_str()
     );
 
 
@@ -403,6 +402,18 @@ int main() {
         "and then convert it into a .png image. Upload the resulting file here.\nAnswer: see the figure %s\nAnd: %s\n",
         filesystem::absolute(solution_filename).c_str(),
         filesystem::absolute(clion_solution_filename).c_str());
+
+
+    /***********
+     * Task 10 *
+     ***********/
+    // Create detection kernel H_lap
+    MatrixXd H_lap = create_filter(static_cast<matrix_utils::Filter>(laplacian_edge_lap));
+    // Create convolution matrix
+    SparseMatrix<double> A3 = create_convolution_matrix(H_lap, dark_einstein_img);
+    printf("\nTask 10. Write the convolution operation corresponding to the detection kernel H_{lap} "
+           "as a matrix vector multiplication by a matrix A_{3} having size mn times mn. "
+           "Is matrix A_{3} symmetric?\nAnswer: %s", is_symmetric(A3) ? "true" : "false");
     return 0;
 }
 

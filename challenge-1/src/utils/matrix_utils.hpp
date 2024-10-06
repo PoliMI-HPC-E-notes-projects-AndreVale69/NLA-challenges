@@ -20,7 +20,14 @@ namespace matrix_utils {
      * @param col column index.
      * @return true if the index is inside the matrix, false otherwise.
      */
-    bool isIndexOutOfBounds(const Eigen::MatrixXd& matrix, int row, int col);
+    bool is_index_out_of_bounds(const Eigen::MatrixXd& matrix, int row, int col);
+
+    /**
+     * Given a matrix, return true if it is symmetric.
+     * @param matrix matrix to check that it is symmetrical.
+     * @return true if the matrix is symmetric, false otherwise.
+     */
+    bool is_symmetric(const Eigen::SparseMatrix<double> &matrix);
 
     /**
      * A list of the most popular and well-known filters.

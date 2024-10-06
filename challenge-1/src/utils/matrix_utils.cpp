@@ -22,8 +22,12 @@ namespace matrix_utils {
         return zero_padding_matrix;
     }
 
-    bool isIndexOutOfBounds(const Eigen::MatrixXd &matrix, const int row, const int col) {
+    bool is_index_out_of_bounds(const Eigen::MatrixXd &matrix, const int row, const int col) {
         return row < 0 || row >= matrix.rows() || col < 0 || col >= matrix.cols();
+    }
+
+    bool is_symmetric(const Eigen::SparseMatrix<double> &matrix) {
+        return matrix.isApprox(matrix.transpose());
     }
 
     enum Filter: short {
@@ -163,7 +167,7 @@ namespace matrix_utils {
                     for (int j_col = col_left_bound_neighbour; j_col <= col_right_bound_neighbour; ++j_col, ++offset_filter) {
                         // check that the index neighbour is valid;
                         // this is essential if the filter is applied to the edges of the matrix
-                        if (isIndexOutOfBounds(matrix, i_row, j_col)) {
+                        if (is_index_out_of_bounds(matrix, i_row, j_col)) {
                             continue;
                         }
                         // update the flag, the rows_offset will be updated
