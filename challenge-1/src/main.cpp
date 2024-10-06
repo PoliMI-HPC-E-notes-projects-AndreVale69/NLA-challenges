@@ -37,6 +37,47 @@ enum Filter: short {
     laplacian_edge_lap
 };
 
+
+/**
+ * This function is an override of the original loadMarketVector function.
+ * The original has some problems, perhaps compatibility issues between versions of the libraries.
+ * @return true if the image was successfully loaded, false otherwise.
+ */
+template<typename VectorType>
+bool fixed_load_market_vector(VectorType& vec, const std::string& filename)
+{
+    typedef typename VectorType::Scalar Scalar;
+    std::ifstream in(filename.c_str(), std::ios::in);
+    if(!in)
+        return false;
+
+    std::string line;
+    int n(0);
+    do
+    { // Skip comments
+        std::getline(in, line); eigen_assert(in.good());
+    } while (line[0] == '%');
+    std::istringstream newline(line);
+    newline  >> n;
+    eigen_assert(n>0);
+    vec.resize(n);
+    int i = 0;
+    Scalar value, index;
+    while ( std::getline(in, line) && i < n ){
+        std::istringstream newline(line);
+        newline >> index;
+        newline >> value;
+        vec(i++) = value;
+    }
+    in.close();
+    if (i!=n){
+        std::cerr<< "Unable to read all elements from file " << filename << "\n";
+        return false;
+    }
+    return true;
+}
+
+
 int main() {
     /**********
      * Task 1 *
@@ -325,5 +366,44 @@ int main() {
         "Report here the iteration count and the final residual."
         "\nAnswer: number of iterations %s, number of final residual %s", n_iterations.c_str(), final_residual.c_str()
     );
+
+
+    /**********
+     * Task 9 *
+     **********/
+    VectorXd mat;
+    fixed_load_market_vector(mat, "../challenge-1/resources/sol.mtx");
+    static MatrixXd solution_matrix(height, width);
+    // Fill the matrices with image data
+    for (int i = 0; i < height; ++i) {
+        row_offset = i * width;
+        for (int j = 0; j < width; ++j) {
+            solution_matrix(i, j) = mat[row_offset + j];
+        }
+    }
+    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> solution_result(height, width);
+    solution_result = solution_matrix.unaryExpr([](const double val) -> unsigned char {
+      return static_cast<unsigned char>(val);
+    });
+    // thread feature to speedup I/O operations
+    const char* solution_filename = "solution.png";
+    const char* clion_solution_filename = "../challenge-1/resources/solution.png";
+    std::thread result_thread(
+        image_manipulation::save_image_to_file,
+        solution_filename, width, height, 1, solution_result.data(), width
+    );
+    std::thread clion_result_thread(
+        image_manipulation::save_image_to_file,
+        clion_solution_filename, width, height, 1, solution_result.data(), width
+    );
+    result_thread.join();
+    clion_result_thread.join();
+
+    printf("\nTask 9. Import the previous approximate solution vector x in Eigen "
+        "and then convert it into a .png image. Upload the resulting file here.\nAnswer: see the figure %s\nAnd: %s\n",
+        filesystem::absolute(solution_filename).c_str(),
+        filesystem::absolute(clion_solution_filename).c_str());
     return 0;
 }
+
+

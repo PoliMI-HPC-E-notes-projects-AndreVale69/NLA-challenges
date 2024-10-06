@@ -202,7 +202,7 @@ namespace matrix_utils {
         fprintf(out,"%%%%MatrixMarket vector coordinate real general\n");
         fprintf(out,"%ld\n", n);
         for (int i=0; i<n; i++) {
-            fprintf(out,"%d %f\n", i, vector(i));
+            fprintf(out,"%d %f\n", i+1, vector(i));
         }
         fclose(out);
     }
