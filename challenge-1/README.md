@@ -106,7 +106,15 @@ and move it to your working directory.
     of the linear system $(I+A_{3})y = w$, where $I$ denotes the identity matrix, prescribing a tolerance of $10^{-10}$.
     Report here the iteration count and the final residual.
 
-    Answer: the iteration count is $22$ and the final residual is $3.96623e\text{-}11$ (using [BiCGSTAB][2]).
+    Answer: the iteration count is $23$ and the final residual is $7.81186\text{-}11$ (using [BiCGSTAB][2]).
+
+13. Convert the image stored in the vector $y$ into a `.png` image and upload it.
+
+    Answer: see the figure [eigen_solution.png](resources/eigen_solution.png)
+
+    <img src="resources/eigen_solution.png">
+
+14. Comment the obtained results.
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
 [2]: https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method

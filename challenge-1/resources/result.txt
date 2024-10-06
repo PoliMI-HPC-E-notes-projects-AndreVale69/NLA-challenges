@@ -13,9 +13,9 @@ linear solver status  : normal end
 CGS: number of iterations = 7
 CGS:   double             = 7
 CGS:   quad               = 0
-CGS: elapsed time         = 3.971754e-02 sec.
-CGS:   preconditioner     = 2.726686e-02 sec.
-CGS:     matrix creation  = 2.110000e-07 sec.
-CGS:   linear solver      = 1.245068e-02 sec.
-CGS: relative residual    = 5.135709e-12
+CGS: elapsed time         = 4.697446e-02 sec.
+CGS:   preconditioner     = 3.113581e-02 sec.
+CGS:     matrix creation  = 2.540000e-07 sec.
+CGS:   linear solver      = 1.583865e-02 sec.
+CGS: relative residual    = 1.030717e-11
 

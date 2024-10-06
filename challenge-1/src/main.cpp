@@ -462,7 +462,7 @@ int main() {
     SparseMatrix<double> identity(A3.rows(), A3.cols());
     identity.setIdentity();
     SparseMatrix<double> I_A3 = identity + A3;
-    SparseMatrix<double> y;
+    SparseVector<double> y(A3.size());
     // Set parameters for solver
     // Convergence tolerance
     double tol = 1.e-10;
@@ -478,7 +478,7 @@ int main() {
     vector<Triplet<double>> triplets;
     triplets.reserve(size_vector_einstein_img);
     for (int i = 0; i < size_vector_noise_img; ++i) {
-        triplets.emplace_back(i, 0, static_cast<double>(noise_image_data[i]));
+        triplets.emplace_back(i, 0, w[i]);
     }
     w_sparse_vector.setFromTriplets(triplets.begin(), triplets.end());
 
@@ -487,9 +487,45 @@ int main() {
 
     printf("\nTask 12. Using a suitable iterative solver available in the Eigen library compute the approximate solution"
     "of the linear system (I+A_{3})y = w, where I denotes the identity matrix, prescribing a tolerance of 10^{-10}."
-    "Report here the iteration count and the final residual."
+    "Report here the iteration count and the final residual.\n"
     "Answer: the iteration count is %ld and the final residual is ", bi_cgstab.iterations());
     cout << bi_cgstab.error() << " (using BiCGSTAB).\n";
+
+
+    /***********
+     * Task 13 *
+     ***********/
+    static MatrixXd eigen_solution_matrix(height, width);
+    // Fill the matrices with image data
+    for (int i = 0; i < height; ++i) {
+        row_offset = i * width;
+        for (int j = 0; j < width; ++j) {
+            double val = y.coeff(row_offset+j);
+            eigen_solution_matrix(i, j) = val > 255.0 ? 255.0 : (val < 0 ? 0 : val);
+        }
+    }
+    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> eigen_solution(height, width);
+    eigen_solution = eigen_solution_matrix.unaryExpr([](const double val) -> unsigned char {
+      return static_cast<unsigned char>(val);
+    });
+    // thread feature to speedup I/O operations
+    const char* eigen_solution_filename = "eigen_solution.png";
+    const char* clion_eigen_solution_filename = "../challenge-1/resources/eigen_solution.png";
+    std::thread eigen_solution_save(
+        image_manipulation::save_image_to_file,
+        eigen_solution_filename, width, height, 1, eigen_solution.data(), width
+    );
+    std::thread eigen_solution_clion_save(
+        image_manipulation::save_image_to_file,
+        clion_eigen_solution_filename, width, height, 1, eigen_solution.data(), width
+    );
+    eigen_solution_save.join();
+    eigen_solution_clion_save.join();
+
+    printf("\nTask 13. Convert the image stored in the vector y into a .png image and upload it."
+        "Answer: see the figure %s\nAnd: %s\n",
+        filesystem::absolute(eigen_solution_filename).c_str(),
+        filesystem::absolute(clion_eigen_solution_filename).c_str());
 
     return 0;
 }
