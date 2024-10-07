@@ -521,5 +521,28 @@ int main() {
         filesystem::absolute(eigen_solution_filename).c_str(),
         filesystem::absolute(clion_eigen_solution_filename).c_str());
 
+
+    /***********
+     * Task 14 *
+     ***********/
+    // Create detection kernel H_sh1
+    MatrixXd H_sh1 = create_filter(static_cast<matrix_utils::Filter>(sharpening_sh1));
+    // Create convolution matrix
+    SparseMatrix<double> sharpening_convolution = create_convolution_matrix(H_sh1, dark_einstein_img);
+    printf("\nTask 14. Comment the obtained result."
+        "\nAnswer: The sum between the matrix A3 and an identity matrix gives another convolution matrix: "
+        "the sharpening (H_sh1). Therefore, we compute the linear system using the BiCGSTAB iteration method. "
+        "Finally, we obtain as a result an image with a visual sharpening effect. "
+        "It is very clear when we compare it with the noise image. "
+        "The main difference is the graininess (in the noise image), which is reduced in the result image. "
+        "Although the visual evidence may be sufficient, we also try to provide a mathematical point of view. "
+        "The matricx construct in Task 10 belongs to the family of Toeplitz matrices. "
+        "It can be recognized by its special form. Its shape allows us to say that the main diagonal must be "
+        "composed of the same values. If the value in the index 0,0 is equal to 4 (because we use the Laplacian "
+        "edge detection filter) and it is increased to 5 (due to the sum of the identity matrix), the convolution "
+        "matrix construction is equal to the sharpening matrix. If this were not true, it would mean that it is not "
+        "a Toeplitz matrix (inconsistency).\n"
+        "Answer: A3 equal to I+A3? %s\n",
+        I_A3.isApprox(sharpening_convolution) ? "true" : "false");
     return 0;
 }

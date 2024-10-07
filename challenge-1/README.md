@@ -73,7 +73,7 @@ and move it to your working directory.
    compute the approximate solution to the linear system $A_{2}x = w$ prescribing a tolerance of $10^{-9}$. 
    Report here the iteration count and the final residual.
 
-   Answer: number of iterations $7$, number of final residual $\approx 6.227944e\text{-}12$.
+   Answer: number of iterations $7$, number of final residual $\approx 5.047118e\text{-}12$.
 
 9. Import the previous approximate solution vector $x$ in Eigen and then convert it into a .png image.
    Upload the resulting file here.
@@ -106,7 +106,7 @@ and move it to your working directory.
     of the linear system $(I+A_{3})y = w$, where $I$ denotes the identity matrix, prescribing a tolerance of $10^{-10}$.
     Report here the iteration count and the final residual.
 
-    Answer: the iteration count is $23$ and the final residual is $7.81186\text{-}11$ (using [BiCGSTAB][2]).
+    Answer: the iteration count is $23$ and the final residual is $7.93681\text{-}11$ (using [BiCGSTAB][2]).
 
 13. Convert the image stored in the vector $y$ into a `.png` image and upload it.
 
@@ -115,6 +115,19 @@ and move it to your working directory.
     <img src="resources/eigen_solution.png">
 
 14. Comment the obtained results.
+
+    Answer: The sum between the matrix A3 and an identity matrix gives another convolution matrix: 
+    the sharpening (H_sh1). Therefore, we compute the linear system using the BiCGSTAB iteration method. 
+    Finally, we obtain as a result an image with a visual sharpening effect. It is very clear when we compare 
+    it with the noise image. The main difference is the graininess (in the noise image), which is reduced in the 
+    result image. 
+    
+    Although the visual evidence may be sufficient, we also try to provide a mathematical point of view. 
+    The matrix construct in Task 10 belongs to the family of Toeplitz matrices. It can be recognized by its special 
+    form. Its shape allows us to say that the main diagonal must be composed of the same values. If the value in the 
+    index 0,0 is equal to 4 (because we use the Laplacian edge detection filter) and it is increased to 5 
+    (due to the sum of the identity matrix), the convolution matrix construction is equal to the sharpening matrix. 
+    If this were not true, it would mean that it is not a Toeplitz matrix (inconsistency).
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
 [2]: https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method
