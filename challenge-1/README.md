@@ -118,9 +118,9 @@ and move it to your working directory.
 
     Answer: The sum between the matrix A3 and an identity matrix gives another convolution matrix: 
     the sharpening (H_sh1). Therefore, we compute the linear system using the BiCGSTAB iteration method. 
-    Finally, we obtain as a result an image with a visual sharpening effect. It is very clear when we compare 
-    it with the noise image. The main difference is the graininess (in the noise image), which is reduced in the 
-    result image. 
+    Finally, we obtain as a result the (vector) image before the application of the sharpening filter H_sh1. 
+    Since the final image after convolution is the vector w (representing the noise image), 
+    we can see how the sharpening effect works positively to clarify the image.
     
     Although the visual evidence may be sufficient, we also try to provide a mathematical point of view. 
     The matrix construct in Task 10 belongs to the family of Toeplitz matrices. It can be recognized by its special 
