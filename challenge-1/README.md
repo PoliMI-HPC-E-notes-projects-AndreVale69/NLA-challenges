@@ -78,9 +78,9 @@ and move it to your working directory.
 9. Import the previous approximate solution vector $x$ in Eigen and then convert it into a .png image.
    Upload the resulting file here.
 
-   Answer: see the figure [solution.png](resources/solution.png).
+   Answer: see the figure [lis_solution.png](resources/lis_solution.png).
 
-   <img src="resources/solution.png">
+   <img src="resources/lis_solution.png">
 
 10. Write the convolution operation corresponding to the detection kernel $H_{lap}$ as a matrix vector multiplication 
     by a matrix $A_{3}$ having size $mn \times mn$. Is matrix $A_{3}$ symmetric?

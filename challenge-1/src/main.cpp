@@ -1,7 +1,3 @@
-// from https://github.com/nothings/stb/tree/master
-// #define STB_IMAGE_IMPLEMENTATION
-// #define STB_IMAGE_WRITE_IMPLEMENTATION
-
 #ifdef __CYGWIN__
     std::cout << "The script has been tested on one of the Debian distributions, we don't guarantee that it will work."
 #endif
@@ -120,6 +116,7 @@ int main() {
      * Task 2 *
      **********/
     // Create a random device and a Mersenne Twister random number generator
+    // See more: https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=285a65e11dbb6183a963489bc30b28ab04c6d7cf
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution d(-50, 50);
@@ -259,12 +256,10 @@ int main() {
     smoothing_save.join();
     smoothing_clion_save.join();
 
-    printf(
-    "\nTask 5. Apply the previous smoothing filter to the noisy image by performing "
-    "the matrix vector multiplication A_{1}w Export the resulting image.\nAnswer: see the figure %s\nAnd: %s\n",
-    filesystem::absolute(smoothing_filename).c_str(),
-    filesystem::absolute(clion_smoothing_filename).c_str()
-    );
+    printf("\nTask 5. Apply the previous smoothing filter to the noisy image by performing "
+        "the matrix vector multiplication A_{1}w Export the resulting image.\nAnswer: see the figure %s\nAnd: %s\n",
+        filesystem::absolute(smoothing_filename).c_str(),
+        filesystem::absolute(clion_smoothing_filename).c_str());
 
 
     /**********
@@ -346,9 +341,7 @@ int main() {
     }
 
     // Save results
-    string n_iterations;
-    string final_residual;
-    string line;
+    string n_iterations, final_residual, line;
     for (int i = 0; getline(inputFile, line); ++i) {
         if (i == 12) {
             n_iterations = line.erase(0, line.find_first_of("=")+2);
@@ -385,8 +378,8 @@ int main() {
       return static_cast<unsigned char>(val);
     });
     // thread feature to speedup I/O operations
-    const char* solution_filename = "solution.png";
-    const char* clion_solution_filename = "../challenge-1/resources/solution.png";
+    const char* solution_filename = "lis_solution.png";
+    const char* clion_solution_filename = "../challenge-1/resources/lis_solution.png";
     std::thread result_thread(
         image_manipulation::save_image_to_file,
         solution_filename, width, height, 1, solution_result.data(), width
@@ -461,6 +454,7 @@ int main() {
     // Create identity matrix
     SparseMatrix<double> identity(A3.rows(), A3.cols());
     identity.setIdentity();
+    // Store I_A3 using RowMajor to gain performance using OpenMP (fopenmp compilation flag required obv)
     SparseMatrix<double> I_A3 = identity + A3;
     SparseVector<double> y(A3.size());
     // Set parameters for solver

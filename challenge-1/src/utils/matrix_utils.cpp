@@ -4,10 +4,9 @@
 
 namespace matrix_utils {
     Eigen::SparseMatrix<float> zero_padding(const Eigen::MatrixXd &matrix) {
-        const long rows = matrix.rows();
-        const long cols = matrix.cols();
-        const long zero_padding_rows = rows + 2;
-        const long zero_padding_cols = cols + 2;
+        // prepare the matrices and dimensions
+        const long rows = matrix.rows(), cols = matrix.cols();
+        const long zero_padding_rows = rows + 2, zero_padding_cols = cols + 2;
         Eigen::SparseMatrix<float> zero_padding_matrix(zero_padding_rows, zero_padding_cols);
         std::vector<Eigen::Triplet<float>> triplet_list;
         // pre allocation optimization
@@ -23,10 +22,14 @@ namespace matrix_utils {
     }
 
     bool is_index_out_of_bounds(const Eigen::MatrixXd &matrix, const int row, const int col) {
+        // it could be an LRU cache
         return row < 0 || row >= matrix.rows() || col < 0 || col >= matrix.cols();
     }
 
     bool is_symmetric(const Eigen::SparseMatrix<double> &matrix) {
+        // avoid checking each element of the matrix...
+        // instead, use the isApprox function
+        // (https://eigen.tuxfamily.org/dox/classEigen_1_1DenseBase.html#title41)
         return matrix.isApprox(matrix.transpose());
     }
 

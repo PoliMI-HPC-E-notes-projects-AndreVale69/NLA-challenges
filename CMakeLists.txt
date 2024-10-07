@@ -4,7 +4,10 @@ project(nla_challenges)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# enable pthread
 add_compile_options(-pthread)
+# enable OpenMP to use multi-threading with Eigen library
+add_compile_options(-fopenmp)
 
 # mk
 include_directories(
@@ -16,7 +19,6 @@ include_directories(
 
 add_executable(
         main challenge-1/src/main.cpp
-        challenge-1/src/utils/convert_utils.cpp
         challenge-1/src/utils/image_manipulation.cpp
         challenge-1/src/utils/matrix_utils.cpp
 )

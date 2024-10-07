@@ -5,7 +5,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../external_libs/stb_image_write.h"
 
-#include <iostream>
 #include <sstream>
 
 
