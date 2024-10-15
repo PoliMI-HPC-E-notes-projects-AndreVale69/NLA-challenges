@@ -14,6 +14,12 @@
 2. Solve the eigenvalue problem $A^{T}Ax = \lambda x$ using the proper solver provided by the Eigen library.
    Report the two largest computed singular values of A.
 
-   Answer: 1045817611.425505 (largest), 90689465.396182 (second largest)
+   Answer: $1045817611.425505$ (largest), $90689465.396182$ (second largest)
+3. Export matrix $A^{T}A$ in the matrix market format and move it to the `lis-2.1.6/test` folder.
+   Using the proper iterative solver available in the LIS library compute the largest eigenvalue of $A^{T}A$
+   up to a tolerance of $10^{-8}$. Report the computed eigenvalue. 
+   Is the result in agreement with the one obtained in the previous point?
+
+   Answer: yes, the value obtained is $1.045818e+09$.
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
