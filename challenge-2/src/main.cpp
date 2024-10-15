@@ -57,5 +57,26 @@ int main() {
         "Answer: %f\n", einstein_matrix_transpose_times_matrix.norm()
     );
 
+
+    /**********
+     * Task 2 *
+     **********/
+    // SelfAdjointEigenSolver
+    // https://eigen.tuxfamily.org/dox/classEigen_1_1SelfAdjointEigenSolver.html
+    const SelfAdjointEigenSolver<MatrixXd> eigensolver(einstein_matrix_transpose_times_matrix);
+    // Check all is ok
+    if (eigensolver.info() != Success) {
+        abort();
+    }
+    // Take eigenvalues "the eigenvalues are sorted in increasing order"
+    const VectorXd& eigenvalues = eigensolver.eigenvalues();
+    const long eigenvalues_size = eigenvalues.size();
+    printf(
+        "\nTask 2. Solve the eigenvalue problem A^{T}Ax = lambda x using the proper solver"
+        "provided by the Eigen library. Report the two largest computed singular values of A.\n"
+        "Answer: %f (largest), %f (second largest)\n",
+        eigenvalues.coeff(eigenvalues_size-1), eigenvalues.coeff(eigenvalues_size-2)
+    );
+
     return 0;
 }

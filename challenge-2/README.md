@@ -11,5 +11,9 @@
    Compute the matrix product $A^{T}A$ and report the Euclidean norm of $A^{T}A$.
    
    Answer: $1050410679.542489$
+2. Solve the eigenvalue problem $A^{T}Ax = \lambda x$ using the proper solver provided by the Eigen library.
+   Report the two largest computed singular values of A.
+
+   Answer: 1045817611.425505 (largest), 90689465.396182 (second largest)
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
