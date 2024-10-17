@@ -21,5 +21,7 @@
    Is the result in agreement with the one obtained in the previous point?
 
    Answer: yes, the value obtained is $1.045818e+09$.
+4. Find a shift $\mu \in \mathbb{R}$ yielding an acceleration of the previous eigensolver.
+   Report $\mu$ and the number of iterations required to achieve a tolerance of $10^{-8}$.
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
