@@ -17,13 +17,13 @@ include_directories(
         /u/sw/toolchains/gcc-glibc/11.2.0/pkgs/dealii/9.5.1/include
 )
 
-#add_executable(
-#        main challenge-1/src/main.cpp
-#        challenge-1/src/utils/image_manipulation.cpp
-#        challenge-1/src/utils/matrix_utils.cpp
-#)
 add_executable(
-        main challenge-2/src/main.cpp
+        challenge_1-main challenge-1/src/challenge_1-main.cpp
+        challenge-1/src/utils/image_manipulation.cpp
+        challenge-1/src/utils/matrix_utils.cpp
+)
+add_executable(
+        challenge_2-main challenge-2/src/challenge_2-main.cpp
         challenge-2/src/utils/image_manipulation.cpp
         challenge-2/src/utils/matrix_utils.cpp
 )

@@ -53,6 +53,16 @@ namespace matrix_utils {
     );
 
     /**
+     * Create a chessboard matrix. The dimensions are fixed and are:
+     * - size 200*200;
+     * - each cube has a size of 25 pixels;
+     * - the first cube on the top left is black.
+     * @param chessboard output matrix.
+     * @return the chessboard matrix.
+     */
+    Eigen::MatrixXd create_chessboard(Eigen::MatrixXd &chessboard);
+
+    /**
      * Save an eigen vector to a mtx file.
      * @param filename filename where the mtx vector will be saved.
      * @param vector the vector to be stored.

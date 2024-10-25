@@ -203,6 +203,32 @@ namespace matrix_utils {
         return convolution_matrix;
     }
 
+    Eigen::MatrixXd create_chessboard(Eigen::MatrixXd &chessboard) {
+        // black = 0.0
+        // white = 255.0
+        for(int k = 0; k < 8; ++k) {
+            const int i_pos = k * 25;
+            int j_pos = 0;
+            const bool start_with_black = k % 2 == 0;
+            bool black = start_with_black, white = !black;
+            const int i_bound = i_pos + 25;
+
+            for(int p = 0; p < 8; ++p, j_pos += 25) {
+                if (white) {
+                    const int j_bound = j_pos + 25;
+                    for(int i = i_pos; i < i_bound; ++i) {
+                        for(int j = j_pos; j < j_bound; ++j) {
+                            chessboard(i,j) = 255.0;
+                        }
+                    }
+                }
+                white = black;
+                black = !black;
+            }
+        }
+        return chessboard;
+    }
+
     void save_market_vector(const char * filename, const Eigen::VectorXd& vector) {
         const long n = vector.size();
         FILE* out = fopen(filename,"w");

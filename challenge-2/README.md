@@ -23,5 +23,16 @@
    Answer: yes, the value obtained is $1.045818e+09$.
 4. Find a shift $\mu \in \mathbb{R}$ yielding an acceleration of the previous eigensolver.
    Report $\mu$ and the number of iterations required to achieve a tolerance of $10^{-8}$.
+8. Using `Eigen` create a black and white checkerboard image with height and width equal to 200 pixels.
+   Report the Euclidean norm of the matrix corresponding to the image.
+
+   Answer: $36062.445841$
+9. Introduce a noise into the checkerboard image by adding random fluctuations 
+   of color ranging between $[-50, 50]$ to each pixel.
+   Export the resulting image in `.png` and upload it.
+
+   Answer: see the figure [noise.png](resources/noise.png).
+   
+   <img alt="noise image" src="resources/noise.png">
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=

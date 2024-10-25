@@ -6,7 +6,10 @@
 #endif
 
 
+#include <filesystem>
 #include <iostream>
+#include <random>
+#include <thread>
 #include <unsupported/Eigen/SparseExtra>
 
 #include "utils/matrix_utils.hpp"
@@ -158,7 +161,73 @@ int main() {
         "Using the proper iterative solver available in the LIS library compute the largest eigenvalue of A^{T}A "
         "up to a tolerance of 10^{-8}. Report the computed eigenvalue. "
         "Is the result in agreement with the one obtained in the previous point?"
-        "\nAnswer: yes, the value obtained is %s", largest_eigenvalue.c_str()
+        "\nAnswer: yes, the value obtained is %s\n", largest_eigenvalue.c_str()
+    );
+
+
+    /**********
+     * Task 8 *
+     **********/
+    MatrixXd chessboard = MatrixXd::Zero(200, 200);
+    create_chessboard(chessboard);
+    printf(
+        "\nTask 8. Using Eigen create a black and white checkerboard image "
+        "with height and width equal to 200 pixels. "
+        "Report the Euclidean norm of the matrix corresponding to the image."
+        "\nAnswer: %f\n", chessboard.norm()
+    );
+
+
+    /**********
+     * Task 9 *
+     **********/
+    // Create a random device and a Mersenne Twister random number generator
+    // See more: https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=285a65e11dbb6183a963489bc30b28ab04c6d7cf
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution d(-50, 50);
+
+    // Create result matrix
+    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> chessboard_noise;
+    MatrixXd chessboard_noise_matrix(200, 200);
+    double new_value = 0;
+
+    // Fill the matrices with image data
+    for (int i = 0; i < 200; ++i) {
+        // row_offset = i * width;
+        for (int j = 0; j < 200; ++j) {
+            new_value = chessboard(i, j) + d(gen);
+            chessboard_noise_matrix(i, j) = new_value > 255.0 ? 255.0 : (new_value < 0 ? 0 : new_value);
+        }
+    }
+
+    // Use Eigen's unaryExpr to map the grayscale values
+    chessboard_noise = chessboard_noise_matrix.unaryExpr([](const double val) -> unsigned char {
+      return static_cast<unsigned char>(val);
+    });
+
+    // Save the image using stbi_write_jpg
+    const char* noise_filename = "noise.png";
+    const char* clion_noise_filename = "../challenge-2/resources/noise.png";
+    // thread feature to speedup I/O operations
+    std::thread noise_save(
+        image_manipulation::save_image_to_file,
+        noise_filename, 200, 200, 1, chessboard_noise.data(), 200
+    );
+    std::thread noise_clion_save(
+        image_manipulation::save_image_to_file,
+        clion_noise_filename, 200, 200, 1, chessboard_noise.data(), 200
+    );
+    noise_save.join();
+    noise_clion_save.join();
+
+    printf(
+        "\nTask 9. Introduce a noise into the checkerboard image by adding random fluctuations "
+        "of color ranging between [-50, 50] to each pixel. "
+        "Export the resulting image in .png and upload it."
+        "\nAnswer: see the figure %s\nAnd: %s\n",
+        filesystem::absolute(noise_filename).c_str(),
+        filesystem::absolute(clion_noise_filename).c_str()
     );
     return 0;
 }
