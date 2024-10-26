@@ -23,6 +23,8 @@
    Answer: yes, the value obtained is $1.045818e+09$.
 4. Find a shift $\mu \in \mathbb{R}$ yielding an acceleration of the previous eigensolver.
    Report $\mu$ and the number of iterations required to achieve a tolerance of $10^{-8}$.
+
+   Answer: $\mu = 4.244525\text{e+}07$ and $7$ iterations.
 8. Using `Eigen` create a black and white checkerboard image with height and width equal to 200 pixels.
    Report the Euclidean norm of the matrix corresponding to the image.
 

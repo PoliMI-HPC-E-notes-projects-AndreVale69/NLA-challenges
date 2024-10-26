@@ -117,7 +117,7 @@ int main() {
     const VectorXd& eigenvalues = eigensolver.eigenvalues();
     const long eigenvalues_size = eigenvalues.size();
     printf(
-        "\nTask 2. Solve the eigenvalue problem A^{T}Ax = lambda x using the proper solver"
+        "\nTask 2. Solve the eigenvalue problem A^{T}Ax = lambda x using the proper solver "
         "provided by the Eigen library. Report the two largest computed singular values of A.\n"
         "Answer: %f (largest), %f (second largest)\n",
         eigenvalues.coeff(eigenvalues_size-1), eigenvalues.coeff(eigenvalues_size-2)
@@ -147,11 +147,14 @@ int main() {
     }
 
     // Save results
-    string largest_eigenvalue, line;
-    for (int i = 0; getline(inputFile, line); ++i) {
-        if (i == 13) {
-            largest_eigenvalue = line.erase(0, line.find_first_of("=")+2);
-            break;
+    unique_ptr<string> lis_result;
+    {
+        string line;
+        for (int i = 0; getline(inputFile, line); ++i) {
+            if (i == 13) {
+                lis_result = make_unique<string>(line.erase(0, line.find_first_of("=")+2));
+                break;
+            }
         }
     }
     inputFile.close();
@@ -161,7 +164,46 @@ int main() {
         "Using the proper iterative solver available in the LIS library compute the largest eigenvalue of A^{T}A "
         "up to a tolerance of 10^{-8}. Report the computed eigenvalue. "
         "Is the result in agreement with the one obtained in the previous point?"
-        "\nAnswer: yes, the value obtained is %s\n", largest_eigenvalue.c_str()
+        "\nAnswer: yes, the value obtained is %s\n", lis_result->c_str()
+    );
+
+
+    /**********
+     * Task 4 *
+     **********/
+    // Run LIS
+    if (system("./../challenge-2/resources/run_lis_shift.sh") != 0) {
+        if (system("./../resources/run_lis_shift.sh") != 0) {
+            throw runtime_error("Error loading LIS modules");
+        }
+    }
+
+    // Open results
+    inputFile.open("../challenge-2/resources/result_shift.txt");
+    if (!inputFile.is_open()) {
+        inputFile.open("../resources/result_shift.txt");
+        if (!inputFile.is_open()) {
+            cerr << "Error opening the file!" << endl;
+            return 1;
+        }
+    }
+
+    // Save results
+    {
+        string line;
+        for (int i = 0; getline(inputFile, line); ++i) {
+            if (i == 14) {
+                lis_result = make_unique<string>(line.erase(0, line.find_first_of("=")+2));
+                break;
+            }
+        }
+    }
+    inputFile.close();
+
+    printf(
+        "\nTask 4. Find a shift mu in R yielding an acceleration of the previous eigensolver. "
+        "Report mu and the number of iterations required to achieve a tolerance of 10^{-8}."
+        "\nAnswer: mu = 4.244525e+07 and %s iterations\n", lis_result->c_str()
     );
 
 
@@ -188,7 +230,6 @@ int main() {
     uniform_int_distribution d(-50, 50);
 
     // Create result matrix
-    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> chessboard_noise;
     MatrixXd chessboard_noise_matrix(200, 200);
     double new_value = 0;
 
@@ -202,9 +243,12 @@ int main() {
     }
 
     // Use Eigen's unaryExpr to map the grayscale values
-    chessboard_noise = chessboard_noise_matrix.unaryExpr([](const double val) -> unsigned char {
-      return static_cast<unsigned char>(val);
-    });
+    unique_ptr<Matrix<unsigned char, Dynamic, Dynamic, RowMajor>> chessboard_noise = make_unique
+    <Matrix<unsigned char, Dynamic, Dynamic, RowMajor>>(
+        chessboard_noise_matrix.unaryExpr([](const double val) -> unsigned char {
+            return static_cast<unsigned char>(val);
+        })
+    );
 
     // Save the image using stbi_write_jpg
     const char* noise_filename = "noise.png";
@@ -212,14 +256,15 @@ int main() {
     // thread feature to speedup I/O operations
     std::thread noise_save(
         image_manipulation::save_image_to_file,
-        noise_filename, 200, 200, 1, chessboard_noise.data(), 200
+        noise_filename, 200, 200, 1, chessboard_noise->data(), 200
     );
     std::thread noise_clion_save(
         image_manipulation::save_image_to_file,
-        clion_noise_filename, 200, 200, 1, chessboard_noise.data(), 200
+        clion_noise_filename, 200, 200, 1, chessboard_noise->data(), 200
     );
     noise_save.join();
     noise_clion_save.join();
+    chessboard_noise.reset();
 
     printf(
         "\nTask 9. Introduce a noise into the checkerboard image by adding random fluctuations "

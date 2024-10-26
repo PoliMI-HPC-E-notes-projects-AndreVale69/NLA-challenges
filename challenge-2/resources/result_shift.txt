@@ -7,15 +7,15 @@ precision             : double
 eigensolver           : Power
 convergence condition : ||lx-(B^-1)Ax||_2 <= 1.0e-08 * ||lx||_2
 matrix storage format : CSR
-shift                 : 0.000000e+00
+shift                 : 4.244525e+07
 eigensolver status    : normal end
 
 Power: mode number          = 0
 Power: eigenvalue           = 1.045818e+09
-Power: number of iterations = 8
-Power: elapsed time         = 5.451890e-04 sec.
+Power: number of iterations = 7
+Power: elapsed time         = 5.265000e-04 sec.
 Power:   preconditioner     = 0.000000e+00 sec.
 Power:     matrix creation  = 0.000000e+00 sec.
 Power:   linear solver      = 0.000000e+00 sec.
-Power: relative residual    = 1.866013e-09
+Power: relative residual    = 7.640375e-10
 
