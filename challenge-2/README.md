@@ -14,13 +14,13 @@
 2. Solve the eigenvalue problem $A^{T}Ax = \lambda x$ using the proper solver provided by the Eigen library.
    Report the two largest computed singular values of A.
 
-   Answer: $1045817611.425505$ (largest), $90689465.396182$ (second largest)
+   Answer: $1045817611.425505$ (largest), $90689465.396182$ (second largest).
 3. Export matrix $A^{T}A$ in the matrix market format and move it to the `lis-2.1.6/test` folder.
    Using the proper iterative solver available in the LIS library compute the largest eigenvalue of $A^{T}A$
    up to a tolerance of $10^{-8}$. Report the computed eigenvalue. 
    Is the result in agreement with the one obtained in the previous point?
 
-   Answer: yes, the value obtained is $1.045818e+09$.
+   Answer: yes, the value obtained is $1.045818e+09$
 4. Find a shift $\mu \in \mathbb{R}$ yielding an acceleration of the previous eigensolver.
    Report $\mu$ and the number of iterations required to achieve a tolerance of $10^{-8}$.
 
@@ -42,7 +42,7 @@
    The compressed image can be simply computed as $\tilde{A} = CD^{T}$.
 
    Answer: ($k = 40$, $\mathrm{nnz}(C) = 13640$, $\mathrm{nnz}(D) = 10240$), 
-   ($k = 80$, $\mathrm{nnz}(C) = 27280$, $\mathrm{nnz}(D) = 20480$)
+   ($k = 80$, $\mathrm{nnz}(C) = 27280$, $\mathrm{nnz}(D) = 20480$).
 7. Compute the compressed images as the matrix product $CD^{T}$ (again for $k = 40$ and $k = 80$).
    Export and upload the resulting images in `.png`.
 
@@ -62,5 +62,10 @@
    Answer: see the figure [noise.png](resources/noise.png).
    
    <img alt="noise image" src="resources/noise.png">
+10. Using the SVD module of the Eigen library, 
+    perform a singular value decomposition of the matrix corresponding to the noisy image.
+    Report the two largest computed singular values.
+    
+    Answer: $32339.103442$ (largest), $9523.101669$ (second largest).
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=

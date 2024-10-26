@@ -381,5 +381,19 @@ int main() {
         filesystem::absolute(noise_filename).c_str(),
         filesystem::absolute(clion_noise_filename).c_str()
     );
+
+
+    /***********
+     * Task 10 *
+     ***********/
+    BDCSVD svd_noise (chessboard_noise_matrix, ComputeThinU | ComputeThinV);
+    VectorXd noise_singular_values = svd.singularValues();
+    printf(
+        "\nTask 10. Using the SVD module of the Eigen library, perform a singular value decomposition of the "
+        "matrix corresponding to the noisy image."
+        "Report the two largest computed singular values."
+        "\nAnswer: %f (largest), %f (second largest)\n",
+        noise_singular_values.coeff(0), noise_singular_values.coeff(1)
+    );
     return 0;
 }
