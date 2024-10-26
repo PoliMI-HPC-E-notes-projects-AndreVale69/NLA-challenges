@@ -29,6 +29,19 @@
    matrix $A$. Report the Euclidean norm of the diagonal matrix $\Sigma$ of the singular values.
 
    Answer: $35576.621650$
+6. Compute the matrices $C$ and $D$ assuming $k = 40$ and $k = 80$.
+   Report the number of nonzero entries in the matrices $C$ and $D$.
+   
+   The truncated SVD considering the first $k$ terms, with $k < r$ is the best approximation of the matrix $A$
+   among the matrices of the rank at most $k$ in the sense of Frobenius norm.
+   This can be used for image compression as follows: instead of storing the whole $m \times n$ matrix $A$,
+   we can instead store the $m \times k$ and $n \times k$ matrices
+   $C = [\mathbf{u}_{1} \: \mathbf{u}_{2} \: \dots \: \mathbf{u}_{k}]$,
+   $D = [\sigma_{1}\mathbf{v}_{1} \: \sigma_{2}\mathbf{v}_{2} \: \dots \: \sigma_{r}\mathbf{v}_{k}]$.
+   If $k$ is much smaller than $p$, then storing $C$ and $D$ will take much less space than storing the full matrix $A$.
+   The compressed image can be simply computed as $\tilde{A} = CD^{T}$.
+
+   Answer: $C$ nnz = $13640$ and $D$ nnz = $20480$
 8. Using `Eigen` create a black and white checkerboard image with height and width equal to 200 pixels.
    Report the Euclidean norm of the matrix corresponding to the image.
 

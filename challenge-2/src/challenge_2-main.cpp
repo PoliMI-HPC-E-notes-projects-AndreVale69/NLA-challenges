@@ -211,10 +211,32 @@ int main() {
      * Task 5 *
      **********/
     BDCSVD svd (einstein_matrix, ComputeThinU | ComputeThinV);
+    MatrixXd sigma = svd.singularValues();
     printf(
     "\nTask 5. Using the SVD module of the Eigen library, perform a singular value decomposition of the "
         "matrix A. Report the Euclidean norm of the diagonal matrix Sigma of the singular values."
-        "\nAnswer: %f\n", svd.singularValues().norm()
+        "\nAnswer: %f\n", sigma.norm()
+    );
+
+
+    /**********
+     * Task 6 *
+     **********/
+    MatrixXd U = svd.matrixU();
+    MatrixXd V = svd.matrixV();
+    MatrixXd C(U.rows(), 40), D(V.rows(), 80);
+    int k = 40;
+    for (int col = 0; col < k; ++col) {
+        C.col(col) = U.col(col);
+    }
+    k = 80;
+    for (int col = 0; col < k; ++col) {
+        D.col(col) = sigma.coeff(col, col) * V.col(col);
+    }
+    printf(
+        "\nTask 6. Compute the matrices C and D described in (1) assuming k = 40 and k = 80. "
+        "Report the number of nonzero entries in the matrices C and D."
+        "\nAnswer: C nnz = %ld and D nnz = %ld\n", C.nonZeros(), D.nonZeros()
     );
 
 
