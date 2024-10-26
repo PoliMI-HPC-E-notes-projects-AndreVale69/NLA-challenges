@@ -60,7 +60,7 @@ namespace matrix_utils {
      * @param chessboard output matrix.
      * @return the chessboard matrix.
      */
-    Eigen::MatrixXd create_chessboard(Eigen::MatrixXd &chessboard);
+    Eigen::SparseMatrix<double> create_chessboard(Eigen::SparseMatrix<double> &chessboard);
 
     /**
      * Save an eigen vector to a mtx file.

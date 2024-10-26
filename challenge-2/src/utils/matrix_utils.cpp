@@ -203,7 +203,9 @@ namespace matrix_utils {
         return convolution_matrix;
     }
 
-    Eigen::MatrixXd create_chessboard(Eigen::MatrixXd &chessboard) {
+    Eigen::SparseMatrix<double> create_chessboard(Eigen::SparseMatrix<double> &chessboard) {
+        std::vector<Eigen::Triplet<double>> triplets;
+        triplets.reserve(25*4*200);
         // black = 0.0
         // white = 255.0
         for(int k = 0; k < 8; ++k) {
@@ -218,7 +220,7 @@ namespace matrix_utils {
                     const int j_bound = j_pos + 25;
                     for(int i = i_pos; i < i_bound; ++i) {
                         for(int j = j_pos; j < j_bound; ++j) {
-                            chessboard(i,j) = 255.0;
+                            triplets.emplace_back(i, j, 255.0);
                         }
                     }
                 }
@@ -226,6 +228,7 @@ namespace matrix_utils {
                 black = !black;
             }
         }
+        chessboard.setFromTriplets(triplets.begin(), triplets.end());
         return chessboard;
     }
 

@@ -168,7 +168,7 @@ int main() {
     /**********
      * Task 8 *
      **********/
-    MatrixXd chessboard = MatrixXd::Zero(200, 200);
+    SparseMatrix<double> chessboard(200, 200);
     create_chessboard(chessboard);
     printf(
         "\nTask 8. Using Eigen create a black and white checkerboard image "
@@ -196,7 +196,7 @@ int main() {
     for (int i = 0; i < 200; ++i) {
         // row_offset = i * width;
         for (int j = 0; j < 200; ++j) {
-            new_value = chessboard(i, j) + d(gen);
+            new_value = chessboard.coeff(i, j) + d(gen);
             chessboard_noise_matrix(i, j) = new_value > 255.0 ? 255.0 : (new_value < 0 ? 0 : new_value);
         }
     }
