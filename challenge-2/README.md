@@ -41,7 +41,16 @@
    If $k$ is much smaller than $p$, then storing $C$ and $D$ will take much less space than storing the full matrix $A$.
    The compressed image can be simply computed as $\tilde{A} = CD^{T}$.
 
-   Answer: $C$ nnz = $13640$ and $D$ nnz = $20480$
+   Answer: ($k = 40$, $\mathrm{nnz}(C) = 13640$, $\mathrm{nnz}(D) = 10240$), 
+   ($k = 80$, $\mathrm{nnz}(C) = 27280$, $\mathrm{nnz}(D) = 20480$)
+7. Compute the compressed images as the matrix product $CD^{T}$ (again for $k = 40$ and $k = 80$).
+   Export and upload the resulting images in `.png`.
+
+   Answer: see the pictures [compressed_k40](resources/compressed_image_k40.png) and
+   [compressed_k80](resources/compressed_image_k80.png).
+
+   <img alt="compressed img k40" src="resources/compressed_image_k40.png">
+   <img alt="compressed img k80" src="resources/compressed_image_k80.png">
 8. Using `Eigen` create a black and white checkerboard image with height and width equal to 200 pixels.
    Report the Euclidean norm of the matrix corresponding to the image.
 

@@ -80,7 +80,6 @@ int main() {
         );
     }
 
-    Matrix<unsigned char, Dynamic, Dynamic, RowMajor> einstein_img(height, width);
     static MatrixXd einstein_matrix(height, width),
                     einstein_matrix_transpose(height, width),
                     einstein_matrix_transpose_times_matrix(height, width);
@@ -211,7 +210,7 @@ int main() {
      * Task 5 *
      **********/
     BDCSVD svd (einstein_matrix, ComputeThinU | ComputeThinV);
-    MatrixXd sigma = svd.singularValues();
+    VectorXd sigma = svd.singularValues();
     printf(
     "\nTask 5. Using the SVD module of the Eigen library, perform a singular value decomposition of the "
         "matrix A. Report the Euclidean norm of the diagonal matrix Sigma of the singular values."
@@ -224,19 +223,94 @@ int main() {
      **********/
     MatrixXd U = svd.matrixU();
     MatrixXd V = svd.matrixV();
-    MatrixXd C(U.rows(), 40), D(V.rows(), 80);
+    MatrixXd C_40(U.rows(), 40), D_40(V.rows(), 40), C_80(U.rows(), 80), D_80(V.rows(), 80);
     int k = 40;
     for (int col = 0; col < k; ++col) {
-        C.col(col) = U.col(col);
+        C_40.col(col) = U.col(col);
+        D_40.col(col) = sigma[col] * V.col(col);
     }
     k = 80;
     for (int col = 0; col < k; ++col) {
-        D.col(col) = sigma.coeff(col, col) * V.col(col);
+        C_80.col(col) = U.col(col);
+        D_80.col(col) = sigma[col] * V.col(col);
     }
     printf(
         "\nTask 6. Compute the matrices C and D described in (1) assuming k = 40 and k = 80. "
         "Report the number of nonzero entries in the matrices C and D."
-        "\nAnswer: C nnz = %ld and D nnz = %ld\n", C.nonZeros(), D.nonZeros()
+        "\nAnswer: (k = 40, nnz(C) = %ld, nnz(D) = %ld), (k = 80, nnz(C) = %ld, nnz(D) = %ld)\n",
+        C_40.nonZeros(), D_40.nonZeros(), C_80.nonZeros(), D_80.nonZeros()
+    );
+
+
+    /**********
+     * Task 7 *
+     **********/
+    MatrixXd A_tilde_40 = (C_40 * D_40.transpose()).transpose();
+    MatrixXd A_tilde_80 = (C_80 * D_80.transpose()).transpose();
+    // Use Eigen's unaryExpr to map the grayscale values
+    Matrix<unsigned char, Dynamic, Dynamic> compressed_image_40 = Matrix<unsigned char, Dynamic, Dynamic>(
+        A_tilde_40.unaryExpr([](const double val) -> unsigned char {
+            return static_cast<unsigned char>(val > 255.0 ? 255.0 : (val < 0 ? 0 : val));
+        }));
+    Matrix<unsigned char, Dynamic, Dynamic> compressed_image_80 = Matrix<unsigned char, Dynamic, Dynamic>(
+        A_tilde_80.unaryExpr([](const double val) -> unsigned char {
+            return static_cast<unsigned char>(val > 255.0 ? 255.0 : (val < 0 ? 0 : val));
+    }));
+
+    // Save the image using stbi_write_jpg
+    const char* compressed_image_filename_40 = "compressed_image_k40.png";
+    const char* clion_compressed_image_filename_40 = "../challenge-2/resources/compressed_image_k40.png";
+    const char* compressed_image_filename_80 = "compressed_image_k80.png";
+    const char* clion_compressed_image_filename_80 = "../challenge-2/resources/compressed_image_k80.png";
+    // thread feature to speedup I/O operations
+    std::thread compressed_image_save_40(
+        image_manipulation::save_image_to_file,
+        compressed_image_filename_40,
+        A_tilde_40.rows(),
+        A_tilde_40.cols(),
+        1,
+        compressed_image_40.data(),
+        A_tilde_40.rows()
+    );
+    std::thread compressed_image_clion_save_40(
+        image_manipulation::save_image_to_file,
+        clion_compressed_image_filename_40,
+        A_tilde_40.rows(),
+        A_tilde_40.cols(),
+        1,
+        compressed_image_40.data(),
+        A_tilde_40.rows()
+    );
+    std::thread compressed_image_save_80(
+        image_manipulation::save_image_to_file,
+        compressed_image_filename_80,
+        A_tilde_80.rows(),
+        A_tilde_80.cols(),
+        1,
+        compressed_image_80.data(),
+        A_tilde_80.rows()
+    );
+    std::thread compressed_image_clion_save_80(
+        image_manipulation::save_image_to_file,
+        clion_compressed_image_filename_80,
+        A_tilde_80.rows(),
+        A_tilde_80.cols(),
+        1,
+        compressed_image_80.data(),
+        A_tilde_80.rows()
+    );
+    compressed_image_save_40.join();
+    compressed_image_save_80.join();
+    compressed_image_clion_save_40.join();
+    compressed_image_clion_save_80.join();
+    printf(
+        "\nTask 7. Compute the compressed images as the matrix product CD^{T} (again for k = 40 and k = 80). "
+        "Export and upload the resulting images in .png."
+        "\nAnswer: see the pictures %s\nAnd: %s\nAnd: %s\nAnd: %s\n",
+        filesystem::absolute(compressed_image_filename_40).c_str(),
+        filesystem::absolute(clion_compressed_image_filename_40).c_str(),
+        filesystem::absolute(compressed_image_filename_80).c_str(),
+        filesystem::absolute(clion_compressed_image_filename_80).c_str()
     );
 
 
