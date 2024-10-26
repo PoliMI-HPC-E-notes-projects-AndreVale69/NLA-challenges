@@ -208,6 +208,17 @@ int main() {
 
 
     /**********
+     * Task 5 *
+     **********/
+    BDCSVD svd (einstein_matrix, ComputeThinU | ComputeThinV);
+    printf(
+    "\nTask 5. Using the SVD module of the Eigen library, perform a singular value decomposition of the "
+        "matrix A. Report the Euclidean norm of the diagonal matrix Sigma of the singular values."
+        "\nAnswer: %f\n", svd.singularValues().norm()
+    );
+
+
+    /**********
      * Task 8 *
      **********/
     SparseMatrix<double> chessboard(200, 200);
