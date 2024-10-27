@@ -387,13 +387,110 @@ int main() {
      * Task 10 *
      ***********/
     BDCSVD svd_noise (chessboard_noise_matrix, ComputeThinU | ComputeThinV);
-    VectorXd noise_singular_values = svd.singularValues();
+    VectorXd sigma_noise = svd_noise.singularValues();
     printf(
         "\nTask 10. Using the SVD module of the Eigen library, perform a singular value decomposition of the "
         "matrix corresponding to the noisy image."
         "Report the two largest computed singular values."
         "\nAnswer: %f (largest), %f (second largest)\n",
-        noise_singular_values.coeff(0), noise_singular_values.coeff(1)
+        sigma_noise.coeff(0), sigma_noise.coeff(1)
+    );
+
+
+    /***********
+     * Task 11 *
+     ***********/
+    MatrixXd U_noise = svd_noise.matrixU();
+    MatrixXd V_noise = svd_noise.matrixV();
+    MatrixXd C_5(U_noise.rows(), 5), D_5(V_noise.rows(), 5),
+             C_10(U_noise.rows(), 10), D_10(V_noise.rows(), 10);
+    k = 5;
+    for (int col = 0; col < k; ++col) {
+        C_5.col(col) = U_noise.col(col);
+        D_5.col(col) = sigma_noise[col] * V_noise.col(col);
+    }
+    k = 10;
+    for (int col = 0; col < k; ++col) {
+        C_10.col(col) = U_noise.col(col);
+        D_10.col(col) = sigma_noise[col] * V_noise.col(col);
+    }
+    printf(
+        "\nTask 11. Starting from the previously computed SVD, creates the matrices C and D defined in (1)"
+        " assuming k = 5 and k = 10. Report the size of the matrices C and D."
+        "\nAnswer: (k = 5, nnz(C) = %ld, nnz(D) = %ld), (k = 10, nnz(C) = %ld, nnz(D) = %ld)\n",
+        C_5.nonZeros(), D_5.nonZeros(), C_10.nonZeros(), D_10.nonZeros()
+    );
+
+
+    /**********
+     * Task 12 *
+     **********/
+    MatrixXd A_tilde_5 = (C_5 * D_5.transpose()).transpose();
+    MatrixXd A_tilde_10 = (C_10 * D_10.transpose()).transpose();
+    // Use Eigen's unaryExpr to map the grayscale values
+    Matrix<unsigned char, Dynamic, Dynamic> compressed_image_5 = Matrix<unsigned char, Dynamic, Dynamic>(
+        A_tilde_5.unaryExpr([](const double val) -> unsigned char {
+            return static_cast<unsigned char>(val > 255.0 ? 255.0 : (val < 0 ? 0 : val));
+        }));
+    Matrix<unsigned char, Dynamic, Dynamic> compressed_image_10 = Matrix<unsigned char, Dynamic, Dynamic>(
+        A_tilde_10.unaryExpr([](const double val) -> unsigned char {
+            return static_cast<unsigned char>(val > 255.0 ? 255.0 : (val < 0 ? 0 : val));
+    }));
+
+    // Save the image using stbi_write_jpg
+    const char* compressed_image_filename_5 = "compressed_noise_image_k5.png";
+    const char* clion_compressed_image_filename_5 = "../challenge-2/resources/compressed_noise_image_k5.png";
+    const char* compressed_image_filename_10 = "compressed_noise_image_k10.png";
+    const char* clion_compressed_image_filename_10 = "../challenge-2/resources/compressed_noise_image_k10.png";
+    // thread feature to speedup I/O operations
+    std::thread compressed_image_save_5(
+        image_manipulation::save_image_to_file,
+        compressed_image_filename_5,
+        A_tilde_5.rows(),
+        A_tilde_5.cols(),
+        1,
+        compressed_image_5.data(),
+        A_tilde_5.rows()
+    );
+    std::thread compressed_image_clion_save_5(
+        image_manipulation::save_image_to_file,
+        clion_compressed_image_filename_5,
+        A_tilde_5.rows(),
+        A_tilde_5.cols(),
+        1,
+        compressed_image_5.data(),
+        A_tilde_5.rows()
+    );
+    std::thread compressed_image_save_10(
+        image_manipulation::save_image_to_file,
+        compressed_image_filename_10,
+        A_tilde_10.rows(),
+        A_tilde_10.cols(),
+        1,
+        compressed_image_10.data(),
+        A_tilde_10.rows()
+    );
+    std::thread compressed_image_clion_save_10(
+        image_manipulation::save_image_to_file,
+        clion_compressed_image_filename_10,
+        A_tilde_10.rows(),
+        A_tilde_10.cols(),
+        1,
+        compressed_image_10.data(),
+        A_tilde_10.rows()
+    );
+    compressed_image_save_5.join();
+    compressed_image_save_10.join();
+    compressed_image_clion_save_5.join();
+    compressed_image_clion_save_10.join();
+    printf(
+        "\nTask 12. Compute the compressed images as the matrix product CD^{T} (again for k = 5 and k = 10). "
+        "Export and upload the resulting images in .png."
+        "\nAnswer: see the pictures %s\nAnd: %s\nAnd: %s\nAnd: %s\n",
+        filesystem::absolute(compressed_image_filename_5).c_str(),
+        filesystem::absolute(clion_compressed_image_filename_5).c_str(),
+        filesystem::absolute(compressed_image_filename_10).c_str(),
+        filesystem::absolute(clion_compressed_image_filename_10).c_str()
     );
     return 0;
 }

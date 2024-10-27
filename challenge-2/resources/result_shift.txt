@@ -13,7 +13,7 @@ eigensolver status    : normal end
 Power: mode number          = 0
 Power: eigenvalue           = 1.045818e+09
 Power: number of iterations = 7
-Power: elapsed time         = 5.294240e-04 sec.
+Power: elapsed time         = 5.277620e-04 sec.
 Power:   preconditioner     = 0.000000e+00 sec.
 Power:     matrix creation  = 0.000000e+00 sec.
 Power:   linear solver      = 0.000000e+00 sec.

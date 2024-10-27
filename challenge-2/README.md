@@ -67,5 +67,18 @@
     Report the two largest computed singular values.
     
     Answer: $32339.103442$ (largest), $9523.101669$ (second largest).
+11. Starting from the previously computed SVD, creates the matrices C and D defined in (1)
+    assuming $k = 5$ and $k = 10$. Report the size of the matrices $C$ and $D$.
+
+    Answer: ($k = 5$, $\mathrm{nnz}(C) = 1000$, $nnz(D) = 1000$),
+    ($k = 10$, $\mathrm{nnz}(C) = 2000$, $\mathrm{nnz}(D) = 2000$)
+12. Compute the compressed images as the matrix product $CD^{T}$ (again for $k = 5$ and $k = 10$).
+    Export and upload the resulting images in `.png`.
+
+    Answer: see the pictures [compressed_k5](resources/compressed_noise_image_k5.png) and
+    [compressed_k10](resources/compressed_noise_image_k10.png).
+
+    <img alt="compressed noise image k5" src="resources/compressed_noise_image_k5.png">
+    <img alt="compressed noise image k10" src="resources/compressed_noise_image_k10.png">
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
