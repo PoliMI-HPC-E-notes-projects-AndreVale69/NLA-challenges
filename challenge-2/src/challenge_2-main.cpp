@@ -492,5 +492,24 @@ int main() {
         filesystem::absolute(compressed_image_filename_10).c_str(),
         filesystem::absolute(clion_compressed_image_filename_10).c_str()
     );
+
+    /***********
+     * Task 13 *
+     ***********/
+    printf(
+        "\nTask 13. A low k value means higher compression because fewer terms are used. "
+        "This is clearly seen if we look at the image of Einstein with k = 40 compared to the image with k = 80; "
+        "the first image has lost a lot of details and the image is not of good quality; "
+        "in contrast, the second image has more details because it contains more values (k is larger). "
+        "Another interesting result is that a low value of k also reduces the noise. "
+        "This can be seen in the chessboard image, where the k = 5 image has less noise than the k = 10 image. "
+        "So what do these tests tell us? "
+        "Well, that the truncated svd method needs to be used carefully so that we can use it to balance "
+        "data compression and detail preservation. Obviously, we can't use k too high "
+        "(+ details, noise doesn't change much) or k too low (+ compression, reduces noise, - details). "
+        "However, low k-values work well (in terms of noise reduction) for images with little detail, "
+        "such as a chessboard image, but k-values reduce the details too much for an image with a lot of detail "
+        "(Einstein image)."
+    );
     return 0;
 }

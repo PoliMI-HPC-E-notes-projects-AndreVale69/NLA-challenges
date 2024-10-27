@@ -80,5 +80,21 @@
 
     <img alt="compressed noise image k5" src="resources/compressed_noise_image_k5.png">
     <img alt="compressed noise image k10" src="resources/compressed_noise_image_k10.png">
+13. Compare the compressed images with the original and noisy images. Comment the results.
+
+    Answer: A low $k$ value means higher compression because fewer terms are used.
+    This is clearly seen if we look at the image of Einstein with $k = 40$ compared to the image with $k = 80$; 
+    the first image has lost a lot of details and the image is not of good quality;
+    in contrast, the second image has more details because it contains more values ($k$ is larger). 
+    Another interesting result is that a low value of $k$ also reduces the noise. 
+    This can be seen in the chessboard image, where the $k = 5$ image has less noise than the $k = 10$ image. 
+    So what do these tests tell us? 
+    Well, that the truncated svd method needs to be used carefully so that we can use it to balance 
+    data compression and detail preservation. 
+    Obviously, we can't use $k$ too high (+ details, noise doesn't change much) or $k$ too low 
+    (+ compression, reduces noise, - details). 
+    However, low $k$-values work well (in terms of noise reduction) for images with little detail, 
+    such as a chessboard image, but $k$-values reduce the details 
+    too much for an image with a lot of detail (Einstein image).
 
 [1]: https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/256px-Albert_Einstein_Head.jpg?20141125195928=&download=
