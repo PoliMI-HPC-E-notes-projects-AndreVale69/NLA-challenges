@@ -14,7 +14,7 @@
 2. Solve the eigenvalue problem $A^{T}Ax = \lambda x$ using the proper solver provided by the Eigen library.
    Report the two largest computed singular values of A.
 
-   Answer: $1045817611.425505$ (largest), $90689465.396182$ (second largest).
+   Answer: $32339.103442$ (largest), $9523.101669$ (second largest).
 3. Export matrix $A^{T}A$ in the matrix market format and move it to the `lis-2.1.6/test` folder.
    Using the proper iterative solver available in the LIS library compute the largest eigenvalue of $A^{T}A$
    up to a tolerance of $10^{-8}$. Report the computed eigenvalue. 
@@ -66,12 +66,12 @@
     perform a singular value decomposition of the matrix corresponding to the noisy image.
     Report the two largest computed singular values.
     
-    Answer: $32339.103442$ (largest), $9523.101669$ (second largest).
+    Answer: $25495.147715$ (largest), $22946.704097$ (second largest).
 11. Starting from the previously computed SVD, creates the matrices C and D defined in (1)
     assuming $k = 5$ and $k = 10$. Report the size of the matrices $C$ and $D$.
 
-    Answer: ($k = 5$, $\mathrm{nnz}(C) = 1000$, $nnz(D) = 1000$),
-    ($k = 10$, $\mathrm{nnz}(C) = 2000$, $\mathrm{nnz}(D) = 2000$)
+    Answer: (k = 5, C = (200 rows, 5 cols), D = (200 rows, 5 cols)), 
+    (k = 10, C = (200 rows, 10 cols), D = (200 rows, 10 cols)).
 12. Compute the compressed images as the matrix product $CD^{T}$ (again for $k = 5$ and $k = 10$).
     Export and upload the resulting images in `.png`.
 

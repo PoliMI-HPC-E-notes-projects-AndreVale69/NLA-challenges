@@ -119,7 +119,7 @@ int main() {
         "\nTask 2. Solve the eigenvalue problem A^{T}Ax = lambda x using the proper solver "
         "provided by the Eigen library. Report the two largest computed singular values of A.\n"
         "Answer: %f (largest), %f (second largest)\n",
-        eigenvalues.coeff(eigenvalues_size-1), eigenvalues.coeff(eigenvalues_size-2)
+        sqrt(eigenvalues.coeff(eigenvalues_size-1)), sqrt(eigenvalues.coeff(eigenvalues_size-2))
     );
 
 
@@ -417,8 +417,11 @@ int main() {
     printf(
         "\nTask 11. Starting from the previously computed SVD, creates the matrices C and D defined in (1)"
         " assuming k = 5 and k = 10. Report the size of the matrices C and D."
-        "\nAnswer: (k = 5, nnz(C) = %ld, nnz(D) = %ld), (k = 10, nnz(C) = %ld, nnz(D) = %ld)\n",
-        C_5.nonZeros(), D_5.nonZeros(), C_10.nonZeros(), D_10.nonZeros()
+        "\nAnswer: (k = 5, C = (%ld rows, %ld cols), D = (%ld rows, %ld cols)), (k = 10, C = (%ld rows, %ld cols), D = (%ld rows, %ld cols))\n",
+        C_5.rows(), C_5.cols(),
+        D_5.rows(), D_5.cols(),
+        C_10.rows(), C_10.cols(),
+        D_10.rows(), D_10.cols()
     );
 
 
