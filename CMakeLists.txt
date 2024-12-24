@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 # enable pthread
 add_compile_options(-pthread)
-# enable OpenMP to use multi-threading with Eigen library
-#add_compile_options(-fopenmp)
 
 # mk
 include_directories(
